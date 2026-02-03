@@ -1,0 +1,29 @@
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+
+# Git files
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# OS junk files
+.DS_Store
+Thumbs.db

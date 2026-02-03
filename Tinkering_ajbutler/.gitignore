@@ -1,0 +1,21 @@
+# Byte-code files
+*.pyc
+__pycache__/
+# VS Code
+.vscode/
+# PyCharm
+.idea/
+
+# Virtual environment
+venv/
+.venv/
+env/
+.env/
+
+# Package management
+*.egg-info/
+.install.log
+
+# Databases
+*.sqlite3
+*.db
