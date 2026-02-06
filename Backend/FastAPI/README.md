@@ -30,4 +30,4 @@ To run the FastAPI app itself:
 		uvicorn app.main:app --reload
 	
 	FastAPI should now be running.
-	If you want to check, you can go to http://LOCALHOST:8000/
+	If you want to check, you can go to http://LOCALHOST:8000/docs

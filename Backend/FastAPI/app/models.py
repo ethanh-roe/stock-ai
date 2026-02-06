@@ -1,33 +1,27 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DECIMAL, TIMESTAMP
-from sqlalchemy.orm import relationship
-from app.database import Base
+from pydantic import BaseModel, EmailStr
 
-class User(Base):
-    __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True)
-    username = Column(String(50), unique=True)
-    email = Column(String(255), unique=True)
+# User creation model (what frontend will need to send)
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    
+# User creation response model (what is returned upon creation)
+class UserCreateResponse(BaseModel):
+    id: int
+    email: EmailStr
+    username: str
 
-class Portfolio(Base):
-    __tablename__ = "portfolios"
+# Login Request model
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
-    portfolio_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
+# Token response for login
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    
 
-class Stock(Base):
-    __tablename__ = "stocks"
 
-    stock_id = Column(Integer, primary_key=True)
-    ticker = Column(String(10), unique=True)
-    company = Column(String(255))
-
-class Trade(Base):
-    __tablename__ = "trades"
-
-    trade_id = Column(Integer, primary_key=True)
-    portfolio_id = Column(Integer, ForeignKey("portfolios.portfolio_id"))
-    stock_id = Column(Integer, ForeignKey("stocks.stock_id"))
-    quantity = Column(DECIMAL(10,2))
-    price_per_share = Column(DECIMAL(10,2))
-    trade_date = Column(TIMESTAMP)
