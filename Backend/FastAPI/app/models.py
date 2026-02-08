@@ -15,7 +15,7 @@ class UserCreateResponse(BaseModel):
 
 # Login Request model
 class UserLogin(BaseModel):
-    username: str
+    identifier: str # username OR email associated with account
     password: str
 
 # Token response for login
