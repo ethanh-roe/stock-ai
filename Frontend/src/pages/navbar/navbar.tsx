@@ -6,8 +6,8 @@ const NavBar = () => {
             <nav>
                 <h1>NavBar</h1>
 
-                <Link to="/app">Dashboard</Link>{" | "}
-                <Link to="/app/portfolio">Portfolio</Link>
+                <Link to="/">Dashboard</Link>{" | "}
+                <Link to="/portfolio">Portfolio</Link>
             </nav>
         </>
     )

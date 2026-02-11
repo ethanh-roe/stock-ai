@@ -5,7 +5,11 @@ const Login = () => {
     const navigate = useNavigate();
 
     const handleGuest = () => {
-        navigate("/app");
+        navigate("/");
+    };
+
+    const handleRegister = () => {
+        navigate("/register");
     };
 
     return (
@@ -16,7 +20,7 @@ const Login = () => {
 
             <div className="button-row">
                 <button>Login</button>
-                <button>Register</button>
+                <button onClick={handleRegister}>Register</button>
             </div>
             <button onClick={handleGuest}>Continue as Guest</button>
         </div>
