@@ -3,6 +3,7 @@ import theme from "./theme";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import NavBar from "./pages/navbar/navbar";
 import Dashboard from "./pages/dashboard/dashboard";
+import Portfolio from "./pages/portfolio/portfolio"
 
 const router = createBrowserRouter([{
   path:"/",
@@ -19,6 +20,10 @@ const router = createBrowserRouter([{
       index: true,
       element: <Dashboard />
     },
+    {
+      path: "portfolio",
+      element: <Portfolio />
+    }
   ]
 }]);
 
