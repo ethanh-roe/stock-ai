@@ -5,17 +5,23 @@ import NavBar from "./pages/navbar/navbar";
 import Dashboard from "./pages/dashboard/dashboard";
 import Portfolio from "./pages/portfolio/portfolio"
 import Login from "./pages/login/login";
+import Register from "./pages/register/register"
 
 const router = createBrowserRouter([
   // Public
   {
-    path:"/",
+    path:"/login",
     element: <Login />
+  },
+
+  {
+    path: "/register",
+    element: <Register />
   },
 
   // Will be protected, only accessible after loggin in.
   {
-    path:"/app",
+    path:"/",
     element: (
       <>
         <NavBar />
