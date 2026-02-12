@@ -1,24 +1,31 @@
 import { createTheme } from '@mui/material/styles';
-import { blue, lightBlue, red } from '@mui/material/colors';
+import { lightBlue, grey } from '@mui/material/colors';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: blue[100],
-      light: lightBlue[500]
+      main: lightBlue[600], 
+      light: lightBlue[400],
+      dark: lightBlue[800],
+      contrastText: '#fff', 
     },
     background: {
-        default: '#f4f4f4'
-    }
+      default: '#f8f9fa',
+      paper: '#ffffff',
+    },
+    secondary: {
+      main: grey[900],
+    },
   },
   typography: {
     fontFamily: '"Roboto", "Arial", sans-serif',
-    h1: {
-      fontWeight: 700,
-    },
-    h2: {
-      fontWeight: 700,
-    },
+    h1: { fontWeight: 700 },
+    h2: { fontWeight: 700 },
+    h5: { fontWeight: 600 },
+    button: { textTransform: 'none' },
+  },
+  shape: {
+    borderRadius: 8,
   },
 });
 
