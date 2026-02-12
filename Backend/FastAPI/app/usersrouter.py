@@ -3,24 +3,21 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter
-from fastapi.security import OAuth2PasswordBearer
 from app.security import (
     hash_password,
     verify_password,
     create_access_token,
-    decode_access_token,
+    user_from_jwt,
 )
 import app.schema as schema
 from app.database import get_db
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
-
 
 @router.post(
     "/users/create/",
-    response_model=models.UserCreateResponse,
+    response_model=models.UserInfoResponse,
     status_code=201,
     summary="User account creation / signup",
     description="""
@@ -51,9 +48,7 @@ def create_user(user: models.UserCreate, db: Session = Depends(get_db)):
         else:
             raise HTTPException(status_code=400, detail="Duplicate entry")
 
-    response = models.UserCreateResponse(
-        id=new_user.user_id, username=new_user.username, email=new_user.email
-    )
+    response = models.UserInfoResponse(id=new_user.user_id, username=new_user.username)
 
     return response
 
@@ -64,7 +59,7 @@ def create_user(user: models.UserCreate, db: Session = Depends(get_db)):
     summary="User account login",
     description="""
              Attempts to login a user given an identifier and password.
-             Identifier can be username or email. \n
+             Identifier can be username or email.
              
              On success, will return a JWT to be used in other requests.
              """,
@@ -89,37 +84,25 @@ def login(request: models.UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     # 3. Create JWT token
-    token_data = {"sub": user.username, "user_id": str(user.user_id)}  # subject = user id
+    token_data = {
+        "sub": user.username,
+        "user_id": str(user.user_id),
+    }  # subject = user id
     token = create_access_token(token_data)
 
     return {"access_token": token, "token_type": "bearer"}
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    payload = decode_access_token(token)
-
-    if payload is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    username: str = payload.get("sub")
-    user_id: int = payload.get("user_id")
-
-    if username is None:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-
-    return {"username": username, "user_id": user_id}
-
-
-@router.get("/users/protected", summary="Test JWT validity", description="""
-            This endpoint is to test sending JWT's through headers to verify that a user has permissions.\n
-            To use, a JWT obtained through /users/login should be sent in the header as \n
-            "Authorization" : "Bearer <JWT token>" \n\n
+@router.get(
+    "/users/protected",
+    summary="Test JWT validity",
+    description="""
+            This endpoint is to test sending JWT's through headers to verify that a user has permissions.
+            To use, a JWT obtained through /users/login should be sent in the header as
+            "Authorization" : "Bearer <JWT token>"
             
             On success, it should then return access granted as well as basic user data.
-            """)
-def protected_route(current_user=Depends(get_current_user)):
+            """,
+)
+def protected_route(current_user=Depends(user_from_jwt)):
     return {"message": "Access granted", "user": current_user}
