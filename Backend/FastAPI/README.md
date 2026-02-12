@@ -1,11 +1,12 @@
 This is the FastAPI Backend used for our REST API.
-Right now, it takes a little bit of work to run; this will likely change once it's running on the actual server.
+If running locally (not on server):
+	the server does not have port 3306 exposed publically, so an SSH tunnel is needed to connect to the database.
+	If you have anything listening on your local port 3306, end that process.
 
-SSH Tunnel
-	In order to run, you will first need to create an SSH tunnel to the server in a separate command line window:
-		ssh -L 3307:localhost:3306 your_username@coms-4020-029.class.las.iastate.edu
-	use NetID username & password
-	Keep this window open so the tunnel remains open; the app is using it to connect.
+		Create an SSH tunnel to the server to access port 3306 (our database)
+			ssh -L 3306:localhost:3306 your_username@coms-4020-029.class.las.iastate.edu
+		use NetID username & password
+		Keep this window open so the tunnel remains open; the app is using it to connect.
 
 To run the FastAPI app itself:
 	In command line, navigate to backend/FastAPI
@@ -27,7 +28,7 @@ To run the FastAPI app itself:
 		pip freeze  > requirements.txt
 
 	To run app in virtual environment:
-		uvicorn app.main:app --reload
+		uvicorn app.main:app --host 0.0.0.0 --port 8080
 	
 	FastAPI should now be running.
 	If you want to check, you can go to http://LOCALHOST:8000/docs
