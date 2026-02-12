@@ -31,4 +31,4 @@ To run the FastAPI app itself:
 		uvicorn app.main:app --host 0.0.0.0 --port 8080
 	
 	FastAPI should now be running.
-	If you want to check, you can go to http://LOCALHOST:8000/docs
+	If you want to check, you can go to http://LOCALHOST:8080/docs

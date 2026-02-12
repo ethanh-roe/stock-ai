@@ -1,4 +1,4 @@
-import app.models as models
+from app.models import portfolioModels
 from typing import List
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
@@ -18,14 +18,14 @@ router = APIRouter()
 
 @router.post(
     "/portfolios/create/",
-    response_model=models.PortfolioInfo,
+    response_model=portfolioModels.PortfolioInfo,
     summary="Creates a new portfolio for user",
     description="""
              Requires JWT Authorization header. Returns created portfolio information.
              """,
 )
 def portfolio_createnew(
-    portfolio_in: models.PortfolioCreate,
+    portfolio_in: portfolioModels.PortfolioCreate,
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
@@ -40,7 +40,7 @@ def portfolio_createnew(
         db.rollback()
         raise HTTPException(status_code=400, detail="Problem adding portfolio")
 
-    response = models.PortfolioInfo(
+    response = portfolioModels.PortfolioInfo(
         name=new_portfolio.name,
         portfolio_id=new_portfolio.portfolio_id,
         creation_date=new_portfolio.creation_date,
@@ -51,7 +51,7 @@ def portfolio_createnew(
 
 @router.get(
     "/portfolios/listall/",
-    response_model=List[models.PortfolioInfo],
+    response_model=List[portfolioModels.PortfolioInfo],
     summary="Grabs all portfolios for user",
     description="""
                 Requires JWT authorization header. Returns list of portfolios, including their name, id, and creation date.
