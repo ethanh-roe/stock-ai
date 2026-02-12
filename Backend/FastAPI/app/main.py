@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 import app.schema as schema
-from app.usersrouter import router as users_router
+from app.routes import stockRoutes, userRoutes
 
 app = FastAPI(
     title="AI-Integrated Stock Trading Platform API",
@@ -16,8 +16,8 @@ app = FastAPI(
     version="0.0.1",
 )
 # Include other routers here. We'll do this to keep things a little more organized.
-app.include_router(users_router)
-
+app.include_router(userRoutes.router)
+app.include_router(stockRoutes.router)
 
 @app.get(
     "/",
