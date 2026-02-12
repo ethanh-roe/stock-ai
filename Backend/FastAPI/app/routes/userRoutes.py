@@ -1,4 +1,4 @@
-import app.models as models
+from app.models import userModels
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -14,10 +14,9 @@ from app.database import get_db
 
 router = APIRouter()
 
-
 @router.post(
     "/users/create/",
-    response_model=models.UserInfoResponse,
+    response_model=userModels.UserInfoResponse,
     status_code=201,
     summary="User account creation / signup",
     description="""
@@ -25,7 +24,7 @@ router = APIRouter()
     Email address is input validated, and passwords are hashed for storage.
     """,
 )
-def create_user(user: models.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: userModels.UserCreate, db: Session = Depends(get_db)):
     # Hash password for storage
     hashed_pw = hash_password(user.password)
 
@@ -48,14 +47,14 @@ def create_user(user: models.UserCreate, db: Session = Depends(get_db)):
         else:
             raise HTTPException(status_code=400, detail="Duplicate entry")
 
-    response = models.UserInfoResponse(id=new_user.user_id, username=new_user.username)
+    response = userModels.UserInfoResponse(id=new_user.user_id, username=new_user.username)
 
     return response
 
 
 @router.post(
     "/users/login",
-    response_model=models.TokenResponse,
+    response_model=userModels.TokenResponse,
     summary="User account login",
     description="""
              Attempts to login a user given an identifier and password.
@@ -64,7 +63,7 @@ def create_user(user: models.UserCreate, db: Session = Depends(get_db)):
              On success, will return a JWT to be used in other requests.
              """,
 )
-def login(request: models.UserLogin, db: Session = Depends(get_db)):
+def login(request: userModels.UserLogin, db: Session = Depends(get_db)):
     # 1. Look up the user
     user = (
         db.query(schema.User)

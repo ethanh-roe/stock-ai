@@ -1,0 +1,24 @@
+.register-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    gap: 5px;
+}
+
+
+.register-container input {
+  padding: 8px;
+  width: 200px;
+}
+
+.register-container button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.button-row {
+    display: flex;
+    gap: 10px;
+}
