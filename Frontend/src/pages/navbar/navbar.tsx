@@ -45,7 +45,10 @@ const NavBar: React.FC = () => {
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
-             <Button variant="outlined" color="inherit" size="small">
+             <Button 
+              component={RouterLink}
+              to="/login"
+              variant="outlined" color="inherit" size="small">
                 Logout
              </Button>
           </Box>
