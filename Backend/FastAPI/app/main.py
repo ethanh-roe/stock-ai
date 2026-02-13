@@ -7,7 +7,7 @@ from app.routes import stockRoutes, userRoutes
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="AI-Integrated Stock Trading Platform API",
+    title="STOCK-AI API",
     description="""
               This is our API.
               Work in progress, but there should eventually be endpoints for users, portfolios, positions, etc.

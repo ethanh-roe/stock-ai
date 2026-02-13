@@ -1,0 +1,25 @@
+# This will not work yet. I'm working on it. - Andrew
+
+stages:
+  - backenddeploy
+
+backenddeploy:
+  stage: backend-deploy
+  image: alpine:latest
+
+  before_script:
+    - apk add --no-cache openssh
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+
+  script:
+    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "
+        cd /path/to/your/project &&
+        git pull &&
+        docker compose down &&
+        docker compose up -d --build
+      "
+
+  only:
+    - main
