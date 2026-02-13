@@ -20,7 +20,6 @@ DATABASE_URL = (
 
 # print("DATABASE_URL =", DATABASE_URL) # For debugging
 
-'''
 engine = create_engine(DATABASE_URL, echo=True)
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
@@ -35,9 +34,3 @@ def get_db():
         yield db
     finally:
         db.close()
-'''
-
-Base = declarative_base()
-
-def get_db():
-    pass
