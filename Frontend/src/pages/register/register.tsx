@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import axios, { AxiosError } from "axios";
+
 import AuthService from "../../services/authService";
 import "./register.css"
-import { type RegisterRequest } from "../../types/auth";
+import type { RegisterRequest, User } from "../../types/auth";
+
+// Type for error responses
+interface ErrorResponse {
+    detail: string;
+}
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
-
-    
-    // const [username, setUsername] = useState<string>("");
-    // const [email, setEmail] = useState<string>("");
-    // const [password, setPassword] = useState<string>("");
 
     const [registerData, setRegisterData] = useState<RegisterRequest>({
         username: "",
@@ -18,7 +20,11 @@ const Register: React.FC = () => {
         password: ""
     });
 
-    const [id, setId] = useState<number>();
+    const [userData, setUserData] = useState<User>({
+        id: 0,
+        email: "",
+        username: ""
+    });
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,13 +33,29 @@ const Register: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
+                // Backend reponds with user information
                 const response = await AuthService.register(registerData);
 
-                setId(response.id);
-                navigate("/dashboard");
+                setUserData(response);
+                navigate("/");
             } catch (err) {
-                setError("Invalid Registration Credentials.");
-                console.error(err);
+                if (axios.isAxiosError(err)) {
+                const error = err as AxiosError<ErrorResponse>;
+
+                // HTTP status code
+                const status = error.response?.status;
+
+                // Message from backend
+                const msg = error.response?.data?.detail;
+
+                console.log("Status:", status);
+                console.log("Detail:", msg);
+                
+                setError(msg || "Unknown error occured");
+            } else {
+                setError("An unexpected error occured");
+            }
+            throw error;
             } finally {
                 setLoading(false);
             }
@@ -46,9 +68,6 @@ const Register: React.FC = () => {
     return (
         <div className="register-container">
             <h1>Register</h1>
-
-            {error && <p className="error">{error}</p>}
-            {loading && <p>Loading...</p>}
 
             <input 
                 placeholder="Username"
@@ -90,6 +109,10 @@ const Register: React.FC = () => {
                     Back to Login
                 </button>
             </div>
+
+            {error && <p className="error">{error}</p>}
+            {loading && <p>Loading...</p>}
+
         </div>
     )
 }
