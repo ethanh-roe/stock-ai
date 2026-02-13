@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
-
 import AuthService from "../../services/authService";
 import "./register.css"
 import { type RegisterRequest } from "../../types/auth";
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
+
+    
+    // const [username, setUsername] = useState<string>("");
+    // const [email, setEmail] = useState<string>("");
+    // const [password, setPassword] = useState<string>("");
 
     const [registerData, setRegisterData] = useState<RegisterRequest>({
         username: "",
@@ -28,16 +31,9 @@ const Register: React.FC = () => {
 
                 setId(response.id);
                 navigate("/dashboard");
-
-            } catch (err: unknown) {
-                if(axios.isAxiosError(err) && err.response) {
-                    setError(`Error ${err.response.status}: ${err.response.data?.detail ?? "Request failed"}`);
-                } else{
-                    setError("Network or unexpected error.");
-                }
-            // } catch (err) {
-            //     setError("Invalid Registration Credentials.");
-            //     console.error(err);
+            } catch (err) {
+                setError("Invalid Registration Credentials.");
+                console.error(err);
             } finally {
                 setLoading(false);
             }
