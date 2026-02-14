@@ -25,7 +25,8 @@ const StockDashboard: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get<StockProfile>(`http://localhost:8000/data/${symbol}`); // Need to change this to server
+      const response = await axios.get<StockProfile>(`http://coms-4020-029.class.las.iastate.edu:8080/data/${symbol}`); // Server Address
+      // const response = await axios.get<StockProfile>(`http://localhost:8000/data/${symbol}`); // Localhost
       setData(response.data);
     } catch (err) {
       setError("Ticker not found or API error");
