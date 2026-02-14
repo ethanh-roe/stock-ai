@@ -10,7 +10,6 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import AuthService from "../../services/authService";
-import type { User } from "../../types/auth";
 
 const storedUser = localStorage.getItem("user");
 const user = storedUser ? JSON.parse(storedUser) : null;
