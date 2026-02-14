@@ -23,8 +23,6 @@ const Login: React.FC = () => {
             access_token: "",
             token_type: ""
         });
-
-    // const [token, setToken] = useState<string>("");
     
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
