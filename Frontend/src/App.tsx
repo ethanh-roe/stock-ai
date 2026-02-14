@@ -7,6 +7,7 @@ import Portfolio from "./pages/portfolio/portfolio";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
 import { About } from "./pages/about/about";
+import ProtectedRoute from "./components/protectedRoute";
 
 const router = createBrowserRouter([
   // Public
@@ -14,40 +15,38 @@ const router = createBrowserRouter([
     path: "/login",
     element: <Login />,
   },
-
   {
     path: "/register",
     element: <Register />,
   },
 
-  // Will be protected, only accessible after loggin in.
+  // Protected
   {
-    path: "/",
-    element: (
-      <>
-        <NavBar />
-        <div className="min-h-screen">
-          <Outlet />
-        </div>
-      </>
-    ),
+    element: <ProtectedRoute />,
     children: [
       {
-        index: true,
-        element: <Dashboard />,
-      },
-      {
-        index: true,
-        path: "portfolio",
-        element: <Portfolio />,
-      },
-      {
-        index: true,
-        path: "about",
-        element: <About />,
-      },
-    ],
-  },
+        path: "/",
+        element: (
+          <>
+            <NavBar />
+            <div className="min-h-screen">
+              <Outlet />
+            </div>
+          </>
+        ),
+        children: [
+          { 
+            index: true, 
+            element: <Dashboard />
+          },
+          {
+            path: "portfolio",
+            element: <Portfolio />
+          }
+        ]
+      }
+    ]
+  }
 ]);
 
 function App() {
