@@ -7,5 +7,3 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
-    environment:
-      - PYTHONUNBUFFERED=1
