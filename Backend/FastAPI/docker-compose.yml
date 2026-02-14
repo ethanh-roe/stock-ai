@@ -1,0 +1,11 @@
+services:
+  fastapi:
+    build: .
+    container_name: stock-ai-fastapi
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    environment:
+      - DB_HOST=host.docker.internal
