@@ -7,3 +7,5 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
+    environment:
+      - DB_HOST=host.docker.internal
