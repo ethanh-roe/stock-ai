@@ -47,7 +47,7 @@ DATABASE_URL = (
     f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
-# print("DATABASE_URL =", DATABASE_URL) # For debugging
+print("\nDATABASE_URL =", DATABASE_URL, "\n") # For debugging
 
 engine = create_engine(DATABASE_URL, echo=True)
 
