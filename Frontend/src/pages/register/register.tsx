@@ -4,7 +4,7 @@ import axios, { AxiosError } from "axios";
 
 import AuthService from "../../services/authService";
 import "./register.css"
-import type { RegisterRequest, User } from "../../types/auth";
+import type { RegisterRequest } from "../../types/auth";
 
 // Type for error responses
 interface ErrorResponse {
@@ -20,12 +20,6 @@ const Register: React.FC = () => {
         password: ""
     });
 
-    const [userData, setUserData] = useState<User>({
-        id: 0,
-        email: "",
-        username: ""
-    });
-
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +30,8 @@ const Register: React.FC = () => {
                 // Backend reponds with user information
                 const response = await AuthService.register(registerData);
 
-                setUserData(response);
+                console.log("REGISTER RESPONSE: ", response);
+                
                 navigate("/");
             } catch (err) {
                 if (axios.isAxiosError(err)) {
