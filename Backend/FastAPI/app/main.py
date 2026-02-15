@@ -2,8 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 import app.schema as schema
-from app.routes import stockRoutes, userRoutes, portfolioRoutes
-from app.routes import stockRoutes, userRoutes
+from app.routes import stockRoutes, userRoutes, wsRoutes, portfolioRoutes
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -16,12 +15,15 @@ app = FastAPI(
 app.include_router(userRoutes.router)
 app.include_router(portfolioRoutes.router)
 app.include_router(stockRoutes.router)
+app.include_router(wsRoutes.router)
 
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5174",
     "http://127.0.0.1:5174",
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
