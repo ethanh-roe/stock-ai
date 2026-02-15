@@ -23,6 +23,10 @@ class Portfolio(Base):
     creation_date = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
 
+# Are we storing stock data individually? Seems like unnecessary upkeep.
+# I think it would be better to just store ticker as a stock id for trades,
+# without needing to store ticker information (prices, name, industry, etc) locally. 
+# However, this would require reworking the database; I'm just leaving it alone for now.
 class Stock(Base):
     __tablename__ = "stocks"
 

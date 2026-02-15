@@ -8,12 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="STOCK-AI API",
-    description="""
-              This is our API.
-              Work in progress, but there should eventually be endpoints for users, portfolios, positions, etc.
-              
-              """,
-    version="0.0.2",
+    description="This is the API for Stock-AI, an AI-integrated stock trading platform. Currently a work in progress; endpoints & functionality are subject to change.",
+    version="0.1.0",
 )
 
 # Include other routers here. We'll do this to keep things a little more organized.
@@ -22,19 +18,20 @@ app.include_router(portfolioRoutes.router)
 app.include_router(stockRoutes.router)
 
 origins = [
-    "http://localhost:3000", 
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://localhost:5174", 
+    "http://localhost:5174",
     "http://127.0.0.1:5174",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,           
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],             
-    allow_headers=["*"],          
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 
 @app.get(
     "/",
@@ -48,10 +45,7 @@ def read_root():
 @app.get(
     "/num_users",
     summary="Grabs number of users listed in database.",
-    description="""
-         Establishes database connection, and make simple query to get the number of stored users.
-         Largely exists as a way to test that the database connection is working correctly.
-         """,
+    description="Establishes database connection, and make simple query to get the number of stored users. Largely exists as a way to test that the database connection is working correctly.",
 )
 def db_test(db: Session = Depends(get_db)):
     count = db.query(schema.User).count()

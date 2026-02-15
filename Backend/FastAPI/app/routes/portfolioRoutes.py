@@ -1,28 +1,21 @@
 from app.models import portfolioModels
 from typing import List
-from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter
-from app.security import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    user_from_jwt,
-)
+from app.security import user_from_jwt
 import app.schema as schema
 from app.database import get_db
 
-router = APIRouter()
+
+router = APIRouter(prefix="/portfolios", tags=["portfolios"])
 
 
 @router.post(
-    "/portfolios/create/",
+    "/create",
     response_model=portfolioModels.PortfolioInfo,
     summary="Creates a new portfolio for user",
-    description="""
-             Requires JWT Authorization header. Returns created portfolio information.
-             """,
+    description="Requires JWT Authorization header. Returns created portfolio information.",
 )
 def portfolio_createnew(
     portfolio_in: portfolioModels.PortfolioCreate,
@@ -50,12 +43,10 @@ def portfolio_createnew(
 
 
 @router.get(
-    "/portfolios/listall/",
+    "/listall",
     response_model=List[portfolioModels.PortfolioInfo],
     summary="Grabs all portfolios for user",
-    description="""
-                Requires JWT authorization header. Returns list of portfolios, including their name, id, and creation date.
-            """,
+    description="Requires JWT authorization header. Returns list of portfolios, including their name, id, and creation date.",
 )
 def portfolio_listall(
     current_user=Depends(user_from_jwt), db: Session = Depends(get_db)
