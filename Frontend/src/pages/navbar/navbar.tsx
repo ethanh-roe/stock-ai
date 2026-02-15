@@ -11,9 +11,6 @@ import { Link as RouterLink } from "react-router-dom";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import AuthService from "../../services/authService";
 
-const storedUser = localStorage.getItem("user");
-const user = storedUser ? JSON.parse(storedUser) : null;
-
 const NavBar: React.FC = () => {
   const handleLogout = () => {
     AuthService.logout(); // Clears token
@@ -74,9 +71,6 @@ const NavBar: React.FC = () => {
               variant="outlined" color="inherit" size="small">
                 Logout
              </Button>
-          </Box>
-          <Box sx={{ flexGrow: 0 }}>
-            <p>User = {user.username}</p>
           </Box>
         </Toolbar>
       </Container>
