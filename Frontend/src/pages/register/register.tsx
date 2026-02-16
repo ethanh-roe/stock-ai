@@ -50,7 +50,6 @@ const Register: React.FC = () => {
             } else {
                 setError("An unexpected error occured");
             }
-            throw error;
             } finally {
                 setLoading(false);
             }
