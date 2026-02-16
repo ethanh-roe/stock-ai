@@ -2,12 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import Grid from '@mui/material/Grid';
 import {
     Box, Container, Paper, Typography, Divider,
-    CircularProgress, TextField, Button, Avatar, Chip, Card, CardContent
+    CircularProgress, TextField, Button, Avatar, Chip, Card, CardContent, CardMedia, CardActionArea
 } from '@mui/material';
-import { Search as SearchIcon, ShowChart } from '@mui/icons-material';
+import { Search as SearchIcon, ShowChart, NewspaperOutlined } from '@mui/icons-material';
 import StockChart from '../../components/stockChart.tsx';
 import axios from 'axios';
 import type { StockProfile } from '../../types/stockProfile.tsx';
+
+interface NewsArticle {
+    category: string;
+    datetime: number;
+    headline: string;
+    id: number;
+    image: string;
+    related: string;
+    source: string;
+    summary: string;
+    url: string;
+}
 
 const StockDashboard: React.FC = () => {
     const [ticker, setTicker] = useState<string>('');
@@ -18,6 +30,8 @@ const StockDashboard: React.FC = () => {
     const [_, setError] = useState<string | null>(null);
     const [period, setPeriod] = useState<string>("1d");
     const [historyData, setHistoryData] = useState<any[]>([]);
+    const [news, setNews] = useState<NewsArticle[]>([]);
+    const [newsLoading, setNewsLoading] = useState<boolean>(false);
 
     const socketRef = useRef<WebSocket | null>(null);
 
@@ -52,15 +66,40 @@ const StockDashboard: React.FC = () => {
         }
     };
 
+    const fetchCompanyNews = async (symbol: string) => {
+        setNewsLoading(true);
+        try {
+            const to = new Date();
+            const from = new Date();
+            from.setDate(from.getDate() - 30);
+            
+            const toStr = to.toISOString().split('T')[0];
+            const fromStr = from.toISOString().split('T')[0];
+            
+            const res = await axios.get<NewsArticle[]>(
+                `http://coms-4020-029.class.las.iastate.edu:8080/data/${symbol}/news?from=${fromStr}&to=${toStr}`
+            );
+            setNews(res.data);
+        } catch (err) {
+            console.error("News fetch failed", err);
+            setNews([]);
+        } finally {
+            setNewsLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (!ticker) return;
         fetchProfile(ticker);
+        fetchCompanyNews(ticker);
         setPeriod('1d');
+        
         if (socketRef.current) socketRef.current.close();
         const socket = new WebSocket(`ws://coms-4020-029.class.las.iastate.edu:8080/ws/${ticker}`);
         socketRef.current = socket;
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
+            console.log(message)
             if (message.price) setLivePrice(message.price);
         };
         return () => {
@@ -82,6 +121,19 @@ const StockDashboard: React.FC = () => {
             setSearch('');
             setError(null);
         }
+    };
+
+    const formatNewsDate = (timestamp: number): string => {
+        const date = new Date(timestamp * 1000);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffHours < 1) return 'Just now';
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     return (
@@ -134,6 +186,7 @@ const StockDashboard: React.FC = () => {
 
             <Grid container spacing={2}>
                 <Grid size={8}>
+                    {/* Chart Section */}
                     <Paper elevation={2} sx={{ p: 2, height: '78vh', display: 'flex', flexDirection: 'column', borderRadius: 2, overflow: 'hidden' }}>
                         {!ticker ? (
                             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
@@ -234,6 +287,137 @@ const StockDashboard: React.FC = () => {
                             </Grid>
                         )}
                     </Grid>
+                </Grid>
+
+                {/* News Section - Full Width Below */}
+                <Grid size={12}>
+                    <Paper elevation={2} sx={{ p: 2, height: '26vh', borderRadius: 2, overflow: 'hidden' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                            <NewspaperOutlined sx={{ color: '#667eea', fontSize: 24 }} />
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                {ticker ? `${ticker} Company News` : 'Company News'}
+                            </Typography>
+                        </Box>
+                        {!ticker ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100% - 40px)', opacity: 0.4 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Select a ticker to view company news
+                                </Typography>
+                            </Box>
+                        ) : newsLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100% - 40px)' }}>
+                                <CircularProgress size={30} />
+                            </Box>
+                        ) : news.length > 0 ? (
+                            <Box sx={{ 
+                                display: 'flex', 
+                                gap: 2, 
+                                overflowX: 'auto', 
+                                overflowY: 'hidden',
+                                height: 'calc(100% - 40px)',
+                                pb: 1,
+                                '&::-webkit-scrollbar': {
+                                    height: 8,
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    backgroundColor: '#f1f1f1',
+                                    borderRadius: 4,
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: '#667eea',
+                                    borderRadius: 4,
+                                    '&:hover': {
+                                        backgroundColor: '#764ba2',
+                                    },
+                                },
+                            }}>
+                                {news.slice(0, 10).map((article) => (
+                                    <Card 
+                                        key={article.id} 
+                                        sx={{ 
+                                            minWidth: 320, 
+                                            maxWidth: 320,
+                                            height: '100%',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            borderRadius: 2,
+                                            transition: 'transform 0.2s, box-shadow 0.2s',
+                                            '&:hover': {
+                                                transform: 'translateY(-4px)',
+                                                boxShadow: 6,
+                                            }
+                                        }}
+                                    >
+                                        <CardActionArea 
+                                            onClick={() => window.open(article.url, '_blank')}
+                                            sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                        >
+                                            {article.image && (
+                                                <CardMedia
+                                                    component="img"
+                                                    height="120"
+                                                    image={article.image}
+                                                    alt={article.headline}
+                                                    sx={{ objectFit: 'cover' }}
+                                                />
+                                            )}
+                                            <CardContent sx={{ flexGrow: 1, width: '100%', p: 1.5 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                    <Chip 
+                                                        label={article.source} 
+                                                        size="small" 
+                                                        sx={{ 
+                                                            height: 22, 
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: 600,
+                                                            bgcolor: '#667eea',
+                                                            color: 'white'
+                                                        }} 
+                                                    />
+                                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                        {formatNewsDate(article.datetime)}
+                                                    </Typography>
+                                                </Box>
+                                                <Typography 
+                                                    variant="body2" 
+                                                    sx={{ 
+                                                        fontWeight: 700, 
+                                                        mb: 0.5,
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 3,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden',
+                                                        lineHeight: 1.3
+                                                    }}
+                                                >
+                                                    {article.headline}
+                                                </Typography>
+                                                <Typography 
+                                                    variant="caption" 
+                                                    color="text.secondary"
+                                                    sx={{ 
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden',
+                                                        lineHeight: 1.4
+                                                    }}
+                                                >
+                                                    {article.summary}
+                                                </Typography>
+                                            </CardContent>
+                                        </CardActionArea>
+                                    </Card>
+                                ))}
+                            </Box>
+                        ) : (
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100% - 40px)', opacity: 0.4 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    No news available for {ticker}
+                                </Typography>
+                            </Box>
+                        )}
+                    </Paper>
                 </Grid>
             </Grid>
         </Container>
