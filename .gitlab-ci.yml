@@ -6,16 +6,8 @@ deploy_backend:
   only:
     - main
 
-  before_script:
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-
   script:
     - |
-      ssh ajbutler@coms-4020-029.class.las.iastate.edu << 'EOF'
-      set -e
 
       cd ~/ug_hf_3/Backend/FastAPI
 
