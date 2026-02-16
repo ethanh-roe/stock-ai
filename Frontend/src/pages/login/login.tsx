@@ -1,3 +1,5 @@
+import { Button, TextField } from "@mui/material";
+
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
@@ -19,6 +21,11 @@ const Login: React.FC = () => {
             username: "",
             password: ""
         });
+
+    const [inputErrors, setInputErrors] = useState<{
+            username?: string;
+            password?: string;
+        }>({});
     
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -34,6 +41,24 @@ const Login: React.FC = () => {
     }
 
     const handleLogin = async (): Promise<void> => {
+        // Validate all inputFields have input
+
+        const errors: typeof inputErrors = {};
+
+        if (!loginData.username.trim()) {
+            errors.username = "Username or Email is required";
+        }
+
+        if (!loginData.password.trim()) {
+            errors.password = "Password is required";
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setInputErrors(errors);
+            return;
+        }
+
+        setInputErrors({});
         setLoading(true);
         setError(null);
         try {
@@ -81,9 +106,12 @@ const Login: React.FC = () => {
         <div className="login-container">
             <h1>Login Page</h1>
 
-            <input 
-                placeholder="Username or Email"
+            <TextField 
+                required
+                label="Username or Email"
                 value={loginData.username}
+                error={!!inputErrors.username}
+                helperText={inputErrors.username}
                 onChange={(e) => setLoginData(prev => ({
                     ...prev,
                     username: e.target.value
@@ -91,10 +119,13 @@ const Login: React.FC = () => {
                 }
             />
 
-            <input 
-                placeholder="Password"
+            <TextField
+                required
+                label="Password"
                 type="password"
                 value={loginData.password}
+                error={!!inputErrors.password}
+                helperText={inputErrors.password}
                 onChange={(e) => setLoginData(prev => ({
                     ...prev,
                     password: e.target.value
@@ -103,13 +134,19 @@ const Login: React.FC = () => {
             />
 
             <div className="button-row">
-                <button onClick={handleLogin} disabled={loading}>
+                <Button 
+                    variant="contained" 
+                    onClick={handleLogin} 
+                    disabled={loading}>
                     Login
-                </button>
+                </Button>
 
-                <button onClick={handleRegister} disabled={loading}>
+                <Button 
+                    variant="contained" 
+                    onClick={handleRegister} 
+                    disabled={loading}>
                     Register
-                </button>
+                </Button>
             </div>
             
             {error && <p className="error">{error}</p>}
