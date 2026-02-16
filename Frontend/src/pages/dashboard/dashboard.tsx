@@ -57,7 +57,7 @@ const StockDashboard: React.FC = () => {
         fetchProfile(ticker);
         setPeriod('1d');
         if (socketRef.current) socketRef.current.close();
-        const socket = new WebSocket(`ws://localhost:8000/ws/${ticker}`);
+        const socket = new WebSocket(`ws://coms-4020-029.class.las.iastate.edu:8080/ws/${ticker}`);
         socketRef.current = socket;
         socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
