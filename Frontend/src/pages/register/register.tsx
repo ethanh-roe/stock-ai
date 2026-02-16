@@ -1,3 +1,5 @@
+import { Button, TextField } from "@mui/material";
+
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
@@ -20,21 +22,49 @@ const Register: React.FC = () => {
         password: ""
     });
 
+    const [inputErrors, setInputErrors] = useState<{
+        username?: string;
+        email?: string;
+        password?: string;
+    }>({});
+
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleRegister = async (): Promise<void> => {
-            setLoading(true);
-            setError(null);
-            try {
-                // Backend reponds with user information
-                const response = await AuthService.register(registerData);
+        // Validate all inputFields have input
 
-                console.log("REGISTER RESPONSE: ", response);
+        const errors: typeof inputErrors = {};
+
+        if (!registerData.username.trim()) {
+            errors.username = "Username is required";
+        }
+
+        if (!registerData.email.trim()) {
+            errors.email = "Email is required";
+        }
+
+        if (!registerData.password.trim()) {
+            errors.password = "Password is required";
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setInputErrors(errors);
+            return;
+        }
+
+        setInputErrors({});
+        setLoading(true);
+        setError(null);
+        try {
+            // Backend reponds with user information
+            const response = await AuthService.register(registerData);
+
+            console.log("REGISTER RESPONSE: ", response);
                 
-                navigate("/");
-            } catch (err) {
-                if (axios.isAxiosError(err)) {
+            navigate("/");
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
                 const error = err as AxiosError<ErrorResponse>;
 
                 // HTTP status code
@@ -50,10 +80,10 @@ const Register: React.FC = () => {
             } else {
                 setError("An unexpected error occured");
             }
-            } finally {
-                setLoading(false);
-            }
-        };
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleBackToLogin = () => {
         navigate("/login");
@@ -63,9 +93,12 @@ const Register: React.FC = () => {
         <div className="register-container">
             <h1>Register</h1>
 
-            <input 
-                placeholder="Username"
+            <TextField
+                required
+                label="Username"
                 value={registerData.username}
+                error={!!inputErrors.username}
+                helperText={inputErrors.username}
                 onChange={(e) => setRegisterData(prev => ({
                     ...prev,
                     username: e.target.value
@@ -73,9 +106,12 @@ const Register: React.FC = () => {
                 }
             />
 
-            <input 
-                placeholder="Email"
+            <TextField
+                required
+                label="Email"
                 value={registerData.email}
+                error={!!inputErrors.email}
+                helperText={inputErrors.email}
                 onChange={(e) => setRegisterData(prev => ({
                     ...prev,
                     email: e.target.value
@@ -83,10 +119,13 @@ const Register: React.FC = () => {
                 }
             />
 
-            <input 
-                placeholder="Password"
+            <TextField
+                required
+                label="Password"
                 type="password"
                 value={registerData.password}
+                error={!!inputErrors.password}
+                helperText={inputErrors.password}
                 onChange={(e) => setRegisterData(prev => ({
                     ...prev,
                     password: e.target.value
@@ -95,13 +134,19 @@ const Register: React.FC = () => {
             />
 
             <div className="button-row">
-                <button onClick={handleRegister} disabled={loading}>
+                <Button
+                    variant="contained"  
+                    onClick={handleRegister} 
+                    disabled={loading}>
                     Register
-                </button>
+                </Button>
 
-                <button onClick={handleBackToLogin} disabled={loading}>
+                <Button
+                    variant="contained"  
+                    onClick={handleBackToLogin} 
+                    disabled={loading}>
                     Back to Login
-                </button>
+                </Button>
             </div>
 
             {error && <p className="error">{error}</p>}
