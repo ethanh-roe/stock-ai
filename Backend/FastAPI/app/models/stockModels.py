@@ -16,3 +16,15 @@ class StockProfile(BaseModel):
 
     class Config:
         populate_by_name = True
+
+class StockNews(BaseModel):
+    category: str
+    datetime: int 
+    headline: str
+    id: int
+    image: str
+    related: str
+    source: str
+    summary: str
+    url: str
+

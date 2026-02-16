@@ -12,7 +12,7 @@ export const About: React.FC = () => {
     "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgngJS8Npqh_7Svr4MMOCdISea77XosuJnvvzTedbCamtRa0BSUlx8mf9uINUhfFuIcE0NBuAZy_wC5PL3oW0BZ6VW5xVTi_-UAL2wITJULK_40OUP5ICytGTNjI6gaOOsCkepEkF4Z7mgE9r5LAR1CgjU2bteCp-yKLtmsFjH1VERE1KxzA3pLEWTZdrSr/s911/money_joucho_man.png";
 
   const weirdStats = [
-    { value: "6", label: "Stocks Supported" },
+    { value: "All", label: "Stocks Supported" },
     { value: "0", label: "AI Features" },
   ];
   return (
