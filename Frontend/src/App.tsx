@@ -3,25 +3,26 @@ import theme from "./theme";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import NavBar from "./pages/navbar/navbar";
 import Dashboard from "./pages/dashboard/dashboard";
-import Portfolio from "./pages/portfolio/portfolio"
+import Portfolio from "./pages/portfolio/portfolio";
 import Login from "./pages/login/login";
-import Register from "./pages/register/register"
+import Register from "./pages/register/register";
+import { About } from "./pages/about/about";
 
 const router = createBrowserRouter([
   // Public
   {
-    path:"/login",
-    element: <Login />
+    path: "/login",
+    element: <Login />,
   },
 
   {
     path: "/register",
-    element: <Register />
+    element: <Register />,
   },
 
   // Will be protected, only accessible after loggin in.
   {
-    path:"/",
+    path: "/",
     element: (
       <>
         <NavBar />
@@ -33,25 +34,29 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Dashboard />
+        element: <Dashboard />,
       },
       {
         index: true,
         path: "portfolio",
-        element: <Portfolio />
-      }
-    ]
-  }
+        element: <Portfolio />,
+      },
+      {
+        index: true,
+        path: "about",
+        element: <About />,
+      },
+    ],
+  },
 ]);
 
 function App() {
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <RouterProvider router={router} />
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
