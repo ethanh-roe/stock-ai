@@ -9,8 +9,13 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
+import AuthService from "../../services/authService";
 
 const NavBar: React.FC = () => {
+  const handleLogout = () => {
+    AuthService.logout(); // Clears token
+  }
+
   return (
     <AppBar position="sticky" color="primary">
       <Container maxWidth="lg">
@@ -62,12 +67,10 @@ const NavBar: React.FC = () => {
             <Button
               component={RouterLink}
               to="/login"
-              variant="outlined"
-              color="inherit"
-              size="small"
-            >
-              Logout
-            </Button>
+              onClick={handleLogout}
+              variant="outlined" color="inherit" size="small">
+                Logout
+             </Button>
           </Box>
         </Toolbar>
       </Container>

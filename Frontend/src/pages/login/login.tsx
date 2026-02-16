@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 
 import AuthService from "../../services/authService";
 import "./login.css"
-import type { Token, LoginRequest } from "../../types/auth";
+import type { LoginRequest } from "../../types/auth";
+import api from "../../types/api";
 
 // Type for error responses
 interface ErrorResponse {
@@ -18,16 +19,19 @@ const Login: React.FC = () => {
             username: "",
             password: ""
         });
-
-    const [tokenData, setTokenData] = useState<Token>({
-            access_token: "",
-            token_type: ""
-        });
-
-    // const [token, setToken] = useState<string>("");
     
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    const fetchUser = async () => {
+        try {
+           const response = await api.get("users/protected");
+           console.log(response.data);
+           return response.data;
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
     const handleLogin = async (): Promise<void> => {
         setLoading(true);
@@ -36,7 +40,16 @@ const Login: React.FC = () => {
             // Backends responds with token information
             const response = await AuthService.login(loginData);
 
-            setTokenData(response);
+            console.log("LOGIN RESPONSE: ", response);
+
+            // Store token in localStorage
+            localStorage.setItem("token", response.access_token);
+
+            const userResponse = await fetchUser();
+            localStorage.setItem("user", JSON.stringify(userResponse.user));
+
+            console.log("Fetched user:", userResponse.user);
+            
             navigate("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {
@@ -55,14 +68,9 @@ const Login: React.FC = () => {
             } else {
                 setError("An unexpected error occured");
             }
-            throw error;
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleGuest = () => {
-        navigate("/");
     };
 
     const handleRegister = () => {
@@ -104,10 +112,6 @@ const Login: React.FC = () => {
                 </button>
             </div>
             
-            <button onClick={handleGuest} disabled={loading}>
-                Continue as Guest
-            </button>
-                
             {error && <p className="error">{error}</p>}
             {loading && <p>Loading...</p>}
 
