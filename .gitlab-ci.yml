@@ -1,0 +1,49 @@
+stages:
+  - deploy
+
+deploy_backend:
+  stage: deploy
+  only:
+    - main
+
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+  script:
+    - |
+      ssh ajbutler@coms-4020-029.class.las.iastate.edu << 'EOF'
+      set -e
+
+      cd ~/ug_hf_3/Backend/FastAPI
+
+      echo "==> Updating repo"
+      git pull origin main
+
+      echo "==> Stopping old service"
+      sudo systemctl stop stock-ai-backend.service || true
+      sudo systemctl disable stock-ai-backend.service || true
+      sudo rm -f /etc/systemd/system/stock-ai-backend.service
+      sudo systemctl daemon-reload
+
+      echo "==> Removing old container"
+      sudo podman rm -f stock-ai-backend || true
+
+      echo "==> Building new image"
+      sudo podman build -t myfastapi .
+
+      echo "==> Starting container (host network)"
+      sudo podman run -d --name stock-ai-backend --env-file .env -p 8080:8080 myfastapi
+
+      echo "==> Generating systemd service"
+      sudo podman generate systemd --name stock-ai-backend \
+        | sudo tee /etc/systemd/system/stock-ai-backend.service >/dev/null
+
+      sudo systemctl daemon-reload
+      sudo systemctl enable stock-ai-backend.service
+      sudo systemctl start stock-ai-backend.service
+
+      echo "Deploy successful"
+      EOF
