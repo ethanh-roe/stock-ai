@@ -8,9 +8,10 @@ class PortfolioCreate(BaseModel):
 
 
 class PortfolioInfo(BaseModel):
-    portfolio_id: int
+    id: int
     name: str
-    creation_date: datetime
+    created_at: datetime
+    cash_balance: int
 
     class Config:
         # allows SQLAlchemy objects to be returned directly

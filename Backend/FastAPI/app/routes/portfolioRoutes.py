@@ -23,7 +23,7 @@ def portfolio_createnew(
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
-    user_id = current_user["user_id"]
+    user_id = current_user.user_id
 
     # Lock users to prevent race conditions
     user = db.execute(
@@ -61,8 +61,9 @@ def portfolio_createnew(
 
     response = portfolioModels.PortfolioInfo(
         name=new_portfolio.name,
-        portfolio_id=new_portfolio.portfolio_id,
-        creation_date=new_portfolio.creation_date,
+        id=new_portfolio.id,
+        created_at=new_portfolio.created_at,
+        cash_balance = new_portfolio.cash_balance,
     )
 
     return response
@@ -77,7 +78,7 @@ def portfolio_createnew(
 def portfolio_listall(
     current_user=Depends(user_from_jwt), db: Session = Depends(get_db)
 ):
-    user_id = current_user["user_id"]
+    user_id = current_user.user_id
 
     portfolios = (
         db.query(schema.Portfolio).filter(schema.Portfolio.user_id == user_id).all()
