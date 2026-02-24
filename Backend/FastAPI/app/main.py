@@ -1,14 +1,14 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from app.database import get_db
+from app.database import get_db, create_tables
 import app.schema as schema
-from app.routes import stockRoutes, userRoutes, wsRoutes, portfolioRoutes
+from app.routes import stockRoutes, userRoutes, wsRoutes, portfolioRoutes, tradeRoutes
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="STOCK-AI API",
     description="This is the API for Stock-AI, an AI-integrated stock trading platform. Currently a work in progress; endpoints & functionality are subject to change.",
-    version="0.1.0",
+    version="0.1.1",
 )
 
 # Include other routers here. We'll do this to keep things a little more organized.
@@ -16,6 +16,8 @@ app.include_router(userRoutes.router)
 app.include_router(portfolioRoutes.router)
 app.include_router(stockRoutes.router)
 app.include_router(wsRoutes.router)
+app.include_router(tradeRoutes.router)
+create_tables() # Create tables, if needed
 
 origins = [
     "http://localhost:3000",

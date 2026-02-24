@@ -27,7 +27,10 @@ def create_user(user: userModels.UserCreate, db: Session = Depends(get_db)):
     hashed_pw = hash_password(user.password)
 
     new_user = schema.User(
-        username=user.username, email=user.email, password_hash=hashed_pw
+        username=user.username,
+        email=user.email,
+        password_hash=hashed_pw,
+        cash_balance=user.initial_balance,
     )
 
     try:
@@ -46,7 +49,7 @@ def create_user(user: userModels.UserCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="Duplicate entry")
 
     response = userModels.UserInfoResponse(
-        id=new_user.user_id, username=new_user.username
+        id=new_user.id, username=new_user.username
     )
 
     return response
@@ -80,7 +83,7 @@ def login(request: userModels.UserLogin, db: Session = Depends(get_db)):
     # 3. Create JWT token
     token_data = {
         "sub": user.username,
-        "user_id": str(user.user_id),
+        "user_id": str(user.id),
     }  # subject = user id
     token = create_access_token(token_data)
 
@@ -89,8 +92,9 @@ def login(request: userModels.UserLogin, db: Session = Depends(get_db)):
 
 @router.get(
     "/protected",
+    response_model=userModels.ProtectedResponse,
     summary="Test JWT validity",
     description='This endpoint is to test sending JWT\'s through headers to verify that a user has permissions. To use, a JWT obtained through /users/login should be sent in the header as "Authorization" : "Bearer <JWT token>". On success, it should then return access granted as well as basic user data.',
 )
 def protected_route(current_user=Depends(user_from_jwt)):
-    return {"message": "Access granted", "user": current_user}
+    return current_user

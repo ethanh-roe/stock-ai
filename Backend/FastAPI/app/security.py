@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
+from app.models.userModels import ProtectedResponse
 import time
 
 load_dotenv()
@@ -66,4 +67,4 @@ def user_from_jwt(token: str = Depends(oauth2_scheme)):
     if username is None:
         raise HTTPException(status_code=401, detail="Invalid token payload")
 
-    return {"username": username, "user_id": user_id}
+    return ProtectedResponse(user_id = user_id, username=username)

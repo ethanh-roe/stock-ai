@@ -4,6 +4,7 @@ from datetime import datetime
 
 class PortfolioCreate(BaseModel):
     name: str
+    initial_balance: int
 
 
 class PortfolioInfo(BaseModel):

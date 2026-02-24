@@ -6,6 +6,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    initial_balance: int
 
 
 # User creation response model (what is returned upon creation)
@@ -24,3 +25,8 @@ class UserLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class ProtectedResponse(BaseModel):
+    user_id: int
+    username: str

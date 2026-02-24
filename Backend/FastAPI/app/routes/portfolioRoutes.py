@@ -1,5 +1,6 @@
 from app.models import portfolioModels
 from typing import List
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/portfolios", tags=["portfolios"])
     "/create",
     response_model=portfolioModels.PortfolioInfo,
     summary="Creates a new portfolio for user",
-    description="Requires JWT Authorization header. Returns created portfolio information.",
+    description="Requires JWT Authorization header, and for user to have required cash balance to fund initial portfolio balance. Updates user's cash balance on portfolio creation. Returns created portfolio information.",
 )
 def portfolio_createnew(
     portfolio_in: portfolioModels.PortfolioCreate,
@@ -23,7 +24,32 @@ def portfolio_createnew(
     db: Session = Depends(get_db),
 ):
     user_id = current_user["user_id"]
-    new_portfolio = schema.Portfolio(user_id=user_id, name=portfolio_in.name)
+
+    # Lock users to prevent race conditions
+    user = db.execute(
+        select(schema.User).where(schema.User.id == user_id).with_for_update()
+    ).scalar_one()
+
+    # Prevent negative initial balances (No infinite money please)
+    if portfolio_in.initial_balance < 0:
+        raise HTTPException(status_code=400, detail="Initial balance cannot be negative")
+    
+    # Check that user has sufficient funds
+    if portfolio_in.initial_balance > user.cash_balance:
+        raise HTTPException(
+            status_code=400,
+            detail="Insufficient funds to create portfolio with specified initial balance",
+        )
+
+    # Deduct initial portfolio balance from User's cash balance
+    user.cash_balance -= portfolio_in.initial_balance
+
+    # Create Portfolio
+    new_portfolio = schema.Portfolio(
+        user_id=user_id,
+        name=portfolio_in.name,
+        cash_balance=portfolio_in.initial_balance,
+    )
 
     try:
         db.add(new_portfolio)
