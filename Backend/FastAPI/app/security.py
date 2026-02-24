@@ -51,7 +51,7 @@ def decode_access_token(token: str):
 
 
 # Grabs information about a user given their JWT.
-def user_from_jwt(token: str = Depends(oauth2_scheme)):
+def user_from_jwt(token: str = Depends(oauth2_scheme)) -> ProtectedResponse:
     payload = decode_access_token(token)
 
     if payload is None:
