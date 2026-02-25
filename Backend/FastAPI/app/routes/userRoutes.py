@@ -17,7 +17,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post(
     "/create",
-    response_model=userModels.UserInfoResponse,
+    response_model=userModels.UserInfo,
     status_code=201,
     summary="User account creation / signup",
     description="Sets up a user account with specified email address, username, and password. Email address is input validated, and passwords are hashed for storage.",
@@ -48,11 +48,35 @@ def create_user(user: userModels.UserCreate, db: Session = Depends(get_db)):
         else:
             raise HTTPException(status_code=400, detail="Duplicate entry")
 
-    response = userModels.UserInfoResponse(
-        id=new_user.id, username=new_user.username
+    response = userModels.UserInfo(
+        id=new_user.id,
+        username=new_user.username,
+        created_at=new_user.created_at,
+        cash_balance=new_user.cash_balance,
     )
 
     return response
+
+
+@router.get(
+    "/uinfo",
+    response_model=userModels.UserInfo,
+    summary="Return basic information about user.",
+    description="Requires valid JWT.",
+)
+def get_user_info(db: Session = Depends(get_db), current_user=Depends(user_from_jwt)):
+    user_id = current_user.user_id
+    user = db.query(schema.User).filter(schema.User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return userModels.UserInfo(
+        id=user.id,
+        username=user.username,
+        created_at=user.created_at,
+        cash_balance=user.cash_balance,
+    )
 
 
 @router.post(
@@ -87,7 +111,7 @@ def login(request: userModels.UserLogin, db: Session = Depends(get_db)):
     }  # subject = user id
     token = create_access_token(token_data)
 
-    return {"access_token": token, "token_type": "bearer"}
+    return userModels.TokenResponse(access_token=token, token_type="Bearer")
 
 
 @router.get(

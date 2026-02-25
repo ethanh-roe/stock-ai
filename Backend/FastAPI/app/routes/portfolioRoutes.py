@@ -3,9 +3,9 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter, status
 from app.security import user_from_jwt
-import app.schema as schema
+from app.schema import Portfolio, Position, Ticker, User
 from app.database import get_db
 
 
@@ -27,7 +27,7 @@ def portfolio_createnew(
 
     # Lock users to prevent race conditions
     user = db.execute(
-        select(schema.User).where(schema.User.id == user_id).with_for_update()
+        select(User).where(User.id == user_id).with_for_update()
     ).scalar_one()
 
     # Prevent negative initial balances (No infinite money please)
@@ -47,7 +47,7 @@ def portfolio_createnew(
     user.cash_balance -= portfolio_in.initial_balance
 
     # Create Portfolio
-    new_portfolio = schema.Portfolio(
+    new_portfolio = Portfolio(
         user_id=user_id,
         name=portfolio_in.name,
         cash_balance=portfolio_in.initial_balance,
@@ -82,11 +82,59 @@ def portfolio_listall(
 ):
     user_id = current_user.user_id
 
-    portfolios = (
-        db.query(schema.Portfolio).filter(schema.Portfolio.user_id == user_id).all()
-    )
+    portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
 
     return portfolios
+
+
+@router.get(
+    "/{portfolio_id}/positions",
+    summary="Returns held positions in portfolio",
+    description="Requires valid JWT. Returns a json object containing all held positions contained within a given portfolio. Performs request validation and error handling.",
+    response_model=List[portfolioModels.PositionInfo],
+)
+def get_positions(
+    portfolio_id: int,
+    current_user=Depends(user_from_jwt),
+    db: Session = Depends(get_db),
+):
+    # -------------------------
+    # 1. Validate Ownership
+    # -------------------------
+    portfolio = (
+        db.query(Portfolio)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == current_user.user_id)
+        .first()
+    )
+
+    if not portfolio:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio not found or not owned by user.",
+        )
+
+    # -------------------------
+    # 2. Query Positions + Ticker
+    # -------------------------
+    results = (
+        db.query(Position, Ticker)
+        .join(Ticker, Position.ticker_id == Ticker.id)
+        .filter(Position.portfolio_id == portfolio_id)
+        .all()
+    )
+
+    # -------------------------
+    # 3. Format Response
+    # -------------------------
+    return [
+        portfolioModels.PositionInfo(
+            portfolio_id=portfolio_id,
+            ticker=ticker.symbol,
+            quantity=position.quantity,
+            avg_cost_basis=position.avg_cost_basis,
+        )
+        for position, ticker in results
+    ]
 
 
 @router.put(
@@ -105,7 +153,7 @@ def portfolio_cash_out(
 
     # Grab User
     user = db.execute(
-        select(schema.User).where(schema.User.id == user_id).with_for_update()
+        select(User).where(User.id == user_id).with_for_update()
     ).scalar_one()
 
     # Prevent negative xfer amount balances (No infinite money please)
@@ -125,9 +173,7 @@ def portfolio_cash_out(
     # Grab Portfolio
     try:
         portfolio = db.execute(
-            select(schema.Portfolio)
-            .where(schema.Portfolio.id == portfolio_id)
-            .with_for_update()
+            select(Portfolio).where(Portfolio.id == portfolio_id).with_for_update()
         ).scalar_one()
     except NoResultFound:
         raise HTTPException(
@@ -178,7 +224,7 @@ def portfolio_cash_in(
 
     # Grab User
     user = db.execute(
-        select(schema.User).where(schema.User.id == user_id).with_for_update()
+        select(User).where(User.id == user_id).with_for_update()
     ).scalar_one()
 
     # Prevent negative xfer amount balances
@@ -191,9 +237,7 @@ def portfolio_cash_in(
     # Grab Portfolio
     try:
         portfolio = db.execute(
-            select(schema.Portfolio)
-            .where(schema.Portfolio.id == portfolio_id)
-            .with_for_update()
+            select(Portfolio).where(Portfolio.id == portfolio_id).with_for_update()
         ).scalar_one()
     except NoResultFound:
         raise HTTPException(

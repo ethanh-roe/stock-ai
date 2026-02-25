@@ -17,7 +17,7 @@ router = APIRouter(prefix="/trades", tags=["trades"])
     "/newtrade",
     summary="Perform a trade.",
     description="Requires valid JWT. Given trade information in form TradeRequest, attempts to perform trade. Performs error handling + validation of request.",
-    response_model=tradeModels.PositionInfo,
+    response_model=tradeModels.TradeResult,
     status_code=201,
 )
 def newTrade(
@@ -156,7 +156,7 @@ def newTrade(
     # -------------------------
     # Response
     # -------------------------
-    return tradeModels.PositionInfo(
+    return tradeModels.TradeResult(
         portfolio_id=portfolio.id,
         ticker=ticker.symbol,
         quantity=position.quantity if position else Decimal("0"),

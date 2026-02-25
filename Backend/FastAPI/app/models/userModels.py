@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
+from decimal import Decimal
 
 
 # User creation model (what frontend will need to send)
@@ -9,10 +11,12 @@ class UserCreate(BaseModel):
     initial_balance: int
 
 
-# User creation response model (what is returned upon creation)
-class UserInfoResponse(BaseModel):
+class UserInfo(BaseModel):
     id: int
     username: str
+    created_at: datetime
+    cash_balance: Decimal
+    
 
 
 # Login Request model

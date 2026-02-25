@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-
+from decimal import Decimal
 
 class PortfolioCreate(BaseModel):
     name: str
@@ -16,6 +16,13 @@ class PortfolioInfo(BaseModel):
     class Config:
         # allows SQLAlchemy objects to be returned directly
         orm_mode = True
+
+class PositionInfo(BaseModel):
+    portfolio_id: int
+    ticker: str
+    quantity: Decimal
+    avg_cost_basis: Decimal
+    
         
 class Portfolio_Cash_Xfer_Request(BaseModel):
     portfolio_id: int
@@ -24,3 +31,6 @@ class Portfolio_Cash_Xfer_Request(BaseModel):
 class Portfolio_Cash_Xfer_Response(BaseModel):
     portfolio_id: int
     new_cash_balance: int
+    
+    
+
