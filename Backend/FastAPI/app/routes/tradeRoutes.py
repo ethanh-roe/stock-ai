@@ -11,4 +11,4 @@ from app.database import get_db
 router = APIRouter(prefix="/trades", tags=["trades"])
 
 
-# I'm getting there - Andrew
+# @router.post("newtrade", )
