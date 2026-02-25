@@ -90,12 +90,12 @@ def portfolio_listall(
 
 
 @router.put(
-    "/xfer_cash_in",
+    "/cash_in",
     response_model=portfolioModels.Portfolio_Cash_Xfer_Response,
-    summary="Transfers funds from users cash balance to the portfolios cash balance.",
+    summary="Transfers funds from user's cash balance to the portfolio's cash balance.",
     description="Requires JWT authorization header. Attempts to add a specified amount to given portfolio id, checking for ownership of portfolio as well as sufficient user cash balance.",
 )
-def portfolio_increasecash(
+def portfolio_cash_out(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
@@ -163,12 +163,12 @@ def portfolio_increasecash(
 
 
 @router.put(
-    "/xfer_cash_out",
+    "/cash_out",
     response_model=portfolioModels.Portfolio_Cash_Xfer_Response,
-    summary="Transfers funds from portfolio cash balance to the user's cash balance.",
+    summary="Transfers funds from portfolio's cash balance to the user's cash balance.",
     description="Requires JWT authorization header. Attempts to deduct a specified amount from given portfolio id, checking for ownership of portfolio as well as sufficient portfolio cash balance.",
 )
-def portfolio_increasecash(
+def portfolio_cash_in(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
