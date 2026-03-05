@@ -54,3 +54,5 @@ def read_root():
 def db_test(db: Session = Depends(get_db)):
     count = db.query(schema.User).count()
     return {"users_in_db": count}
+
+# This is a line to test that backend changes trigger the BE deploy pipeline. Please remove if still here.
