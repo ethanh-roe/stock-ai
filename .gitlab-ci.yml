@@ -1,0 +1,28 @@
+stages:
+  - fastapibuild
+
+fastapi-build:            
+  stage: fastapibuild
+  tags:
+    - main_backend
+  script:
+    - cd Backend
+    - cd FastAPI        
+    - sudo systemctl stop stock-ai-backend.service
+    - sudo systemctl disable stock-ai-backend.service
+    - sudo rm /etc/systemd/system/stock-ai-backend.service
+    - sudo systemctl daemon-reload
+    - sudo podman rm -f stock-ai-backend || true
+    - sudo podman rmi myfastapi || true
+    - sudo podman system prune -f
+    - sudo podman build -t myfastapi .
+    - sudo podman run -d --name stock-ai-backend --env-file .env -p 8080:8080 myfastapi
+    - sudo podman generate systemd --name stock-ai-backend | sudo tee /etc/systemd/system/stock-ai-backend.service
+    - sudo systemctl daemon-reload
+    - sudo systemctl enable stock-ai-backend.service
+    - sudo systemctl start stock-ai-backend.service
+  only:
+    refs:
+      - main
+    changes: 
+      - Backend/*
