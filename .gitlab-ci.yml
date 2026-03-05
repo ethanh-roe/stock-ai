@@ -25,4 +25,4 @@ fastapi-build:
     refs:
       - main
     changes: 
-      - Backend/*
+      - Backend/**/*

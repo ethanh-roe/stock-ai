@@ -17,14 +17,14 @@ app.include_router(portfolioRoutes.router)
 app.include_router(stockRoutes.router)
 app.include_router(wsRoutes.router)
 app.include_router(tradeRoutes.router)
-create_tables() # Create tables, if needed
+create_tables()  # Create tables, if needed
 
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5174",
     "http://127.0.0.1:5174",
-    "http://localhost:5173", 
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
