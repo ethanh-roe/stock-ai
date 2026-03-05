@@ -24,3 +24,5 @@ fastapi-build:
   only:
     refs:
       - main
+    changes: 
+      - Backend/*
