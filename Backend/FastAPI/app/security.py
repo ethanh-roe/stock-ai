@@ -67,4 +67,4 @@ def user_from_jwt(token: str = Depends(oauth2_scheme)) -> ProtectedResponse:
     if username is None:
         raise HTTPException(status_code=401, detail="Invalid token payload")
 
-    return ProtectedResponse(user_id = user_id, username=username)
+    return ProtectedResponse(user_id=user_id, username=username)
