@@ -47,5 +47,5 @@ react-build:
   only:
     refs:
       - main
-    # changes: 
-      # - Frontend/**/*
+    changes: 
+      - Frontend/**/*
