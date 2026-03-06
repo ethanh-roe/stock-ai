@@ -20,15 +20,21 @@ app.include_router(tradeRoutes.router)
 create_tables()  # Create tables, if needed
 
 origins = [
+    "http://localhost:80",
+    "http://127.0.0.1:80",
+    "http://coms-4020-029.class.las.iastate.edu:80",
+    "http://localhost:443",
+    "http://127.0.0.1:443",
+    "http://coms-4020-029.class.las.iastate.edu:443",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://coms-4020-029.class.las.iastate.edu:3000",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "http://coms-4020-029.class.las.iastate.edu:5174",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://coms-4020-029.class.las.iastate.edu:5173",   
+    "http://coms-4020-029.class.las.iastate.edu:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://coms-4020-029.class.las.iastate.edu:5174",   
 ]
 
 app.add_middleware(
