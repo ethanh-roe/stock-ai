@@ -1,5 +1,6 @@
 stages:
   - fastapibuild
+  - reactbuild
 
 fastapi-build:            
   stage: fastapibuild
@@ -26,3 +27,19 @@ fastapi-build:
       - main
     changes: 
       - Backend/**/*
+
+react-build:            
+  stage: reactbuild
+  tags:
+    - main_frontend
+  script:
+    - cd Frontend
+    - npm install
+    - npm run build
+    - sudo rm -rf /var/www/html/*
+    - sudo cp dist/* /var/www/html/*
+  only:
+    refs:
+      - main
+    changes: 
+      - Frontend/**/*
