@@ -13,6 +13,7 @@ export interface RegisterRequest {
     username: string;
     email: string;
     password: string;
+    initial_balance: number
 }
 
 export interface Token {
