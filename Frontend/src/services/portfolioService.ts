@@ -1,27 +1,16 @@
 import api from "../types/api";
-import type { PortfolioInfo, PortfolioCreate } from "../types/portfolio";
+import type { Portfolio, PortfolioCreateRequest } from "../types/portfolio";
 
 class PortfolioService {
-    async listAll(): Promise<PortfolioInfo[]> {
-        const token = localStorage.getItem("token")
-        const { data } = await api.get<PortfolioInfo[]>("/portfolios/listall", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        });
+    async listAll(): Promise<Portfolio[]> {
+        const { data } = await api.get<Portfolio[]>("/portfolios/listall");
         return data;
     }
 
-    async create(portfolio: PortfolioCreate): Promise<PortfolioInfo> {
-        const token = localStorage.getItem("token");
-        const { data } = await api.post<PortfolioInfo>(
+    async create(portfolio: PortfolioCreateRequest): Promise<Portfolio> {
+        const { data } = await api.post<Portfolio>(
             "/portfolios/create/",
             portfolio,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
         );
         return data;
     }
