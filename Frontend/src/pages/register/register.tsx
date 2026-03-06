@@ -71,7 +71,15 @@ const Register: React.FC = () => {
                 const status = error.response?.status;
 
                 // Message from backend
-                const msg = error.response?.data?.detail;
+                const detail = error.response?.data?.detail;
+
+                let msg = "Unknown error occured";
+
+                if (Array.isArray(detail) && detail.length > 0) {
+                    msg = detail[0].msg;
+                } else if (typeof detail == "string") {
+                    msg = detail;
+                }
 
                 console.log("Status:", status);
                 console.log("Detail:", msg);
