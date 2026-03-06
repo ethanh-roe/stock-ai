@@ -1,5 +1,6 @@
 stages:
   - fastapibuild
+  - reactbuild
 
 fastapi-build:            
   stage: fastapibuild
@@ -26,3 +27,25 @@ fastapi-build:
       - main
     changes: 
       - Backend/**/*
+
+react-build:            
+  stage: reactbuild
+  tags:
+    # - main_frontend # it should run on this, but config stuff that I don't want to deal with make it not work currently.
+    - main_backend
+  script:
+    # - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    # - source ~/.bashrc
+    # - nvm install 20
+    # - nvm use 20
+    # - nvm alias default 20
+    - cd Frontend
+    - npm install
+    - npm run build
+    - sudo rm -rf /var/www/html/*
+    - sudo cp -r dist/* /var/www/html/
+  only:
+    refs:
+      - main
+    changes: 
+      - Frontend/**/*
