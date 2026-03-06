@@ -1,14 +1,14 @@
 import api from "../types/api";
-import type { Portfolio, PortfolioCreateRequest } from "../types/portfolio";
+import type { PortfolioInfo, PortfolioCreateRequest } from "../types/portfolio";
 
 class PortfolioService {
-    async listAll(): Promise<Portfolio[]> {
-        const { data } = await api.get<Portfolio[]>("/portfolios/listall");
+    async listAll(): Promise<PortfolioInfo[]> {
+        const { data } = await api.get<PortfolioInfo[]>("/portfolios/listall");
         return data;
     }
 
-    async create(portfolio: PortfolioCreateRequest): Promise<Portfolio> {
-        const { data } = await api.post<Portfolio>(
+    async create(portfolio: PortfolioCreateRequest): Promise<PortfolioInfo> {
+        const { data } = await api.post<PortfolioInfo>(
             "/portfolios/create/",
             portfolio,
         );
