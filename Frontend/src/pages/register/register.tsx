@@ -19,7 +19,8 @@ const Register: React.FC = () => {
     const [registerData, setRegisterData] = useState<RegisterRequest>({
         username: "",
         email: "",
-        password: ""
+        password: "",
+        initial_balance: 1000
     });
 
     const [inputErrors, setInputErrors] = useState<{

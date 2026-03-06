@@ -13,12 +13,13 @@ class AuthService {
         return data;
     }
 
-    async register({ username, email, password }: RegisterRequest): Promise<User> {
-        console.log({ username, email, password });
+    async register({ username, email, password, initial_balance }: RegisterRequest): Promise<User> {
+        console.log({ username, email, password, initial_balance });
         const { data } = await api.post<User>("/users/create", {
             username,
             email,
             password,
+            initial_balance,
         });
 
         return data;
