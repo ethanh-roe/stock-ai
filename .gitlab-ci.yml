@@ -37,7 +37,7 @@ react-build:
     - npm install
     - npm run build
     - sudo rm -rf /var/www/html/*
-    - sudo cp dist/* /var/www/html/*
+    - sudo cp dist/* /var/www/html/
   only:
     refs:
       - main
