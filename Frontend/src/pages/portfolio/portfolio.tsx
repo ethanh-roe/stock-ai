@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import PortfolioService from "../../services/portfolioService";
-import type { PortfolioInfo } from "../../types/portfolio";
+import type { Portfolio } from "../../types/portfolio";
 import { Box, Button, TextField, List, ListItem } from "@mui/material";
 
 
 const Portfolio: React.FC = () => {
   // List of portfolios
-  const [portfolios, setPortfolios] = useState<PortfolioInfo[]>([]);
-
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  
   const [portfolioName, setPortfolioName] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(false);
