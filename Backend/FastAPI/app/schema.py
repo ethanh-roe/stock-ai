@@ -189,7 +189,7 @@ class Conversation(Base):
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
     updated_at = Column(TIMESTAMP, nullable=False, onupdate=func.now())
 
-    positions: Mapped[List["Message"]] = relationship(back_populates="conversation")
+    messages: Mapped[List["Message"]] = relationship(back_populates="conversation")
 
 
 # -------------------------
