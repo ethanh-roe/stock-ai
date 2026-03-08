@@ -1,9 +1,11 @@
 export interface PortfolioInfo {
-    portfolio_id: number;
+    id: number;
     name: string;
-    creation_date: string;
+    created_at: string;
+    cash_balance: number;
 }
 
 export interface PortfolioCreateRequest {
     name: string;
+    initial_balance: number;
 }
