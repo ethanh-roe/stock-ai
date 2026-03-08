@@ -6,8 +6,10 @@ import axios, { AxiosError } from "axios";
 
 import AuthService from "../../services/authService";
 import "./login.css"
-import type { LoginRequest } from "../../types/auth";
 import api from "../../types/api";
+
+import type { LoginRequest } from "../../types/auth";
+import type { UserInfo } from "../../types/auth";
 
 // Type for error responses
 interface ErrorResponse {
@@ -29,15 +31,12 @@ const Login: React.FC = () => {
     
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-
-    const fetchUser = async () => {
-        try {
-           const response = await api.get("users/protected");
-           console.log(response.data);
-           return response.data;
-        } catch (err) {
-            console.error(err);
-        }
+    
+    // Fetch user info after login
+    const fetchUser = async (): Promise<UserInfo> => {
+        const response = await api.get<UserInfo>("users/uinfo");
+        console.log(response.data);
+        return response.data;
     }
 
     const handleLogin = async (): Promise<void> => {
@@ -70,10 +69,11 @@ const Login: React.FC = () => {
             // Store token in localStorage
             localStorage.setItem("token", response.access_token);
 
-            const userResponse = await fetchUser();
-            localStorage.setItem("user", JSON.stringify(userResponse.user));
+            // Get user info
+            const userInfo = await fetchUser();
+            localStorage.setItem("user", JSON.stringify(userInfo));
 
-            console.log("Fetched user:", userResponse.user);
+            console.log("Fetched user:", userInfo);
             
             navigate("/");
         } catch (err) {
