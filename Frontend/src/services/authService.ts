@@ -1,5 +1,5 @@
 import api from "../types/api";
-import type { User, LoginRequest, RegisterRequest, Token     } from "../types/auth";
+import type { UserInfo, LoginRequest, RegisterRequest, Token } from "../types/auth";
 
 class AuthService {
 
@@ -10,9 +10,9 @@ class AuthService {
         return data;
     }
 
-    async register(user: RegisterRequest): Promise<User> {
+    async register(user: RegisterRequest): Promise<UserInfo> {
         console.log(user);
-        const { data } = await api.post<User>("/users/create", user);
+        const { data } = await api.post<UserInfo>("/users/create", user);
 
         return data;
     }
