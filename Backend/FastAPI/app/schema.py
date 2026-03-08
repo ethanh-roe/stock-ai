@@ -11,6 +11,7 @@ from sqlalchemy import (
     Index,
     TIMESTAMP,
     UniqueConstraint,
+    Text
 )
 import enum
 from typing import List
@@ -20,6 +21,10 @@ from typing import List
 class TradeType(str, enum.Enum):
     BUY = "BUY"
     SELL = "SELL"
+    
+class MessageType(str, enum.Enum):
+    PROMPT = "PROMPT"
+    RESPONSE = "RESPONSE"
 
 
 # -------------------------
@@ -168,3 +173,38 @@ class Trade(Base):
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="trades")
     ticker: Mapped["Ticker"] = relationship(back_populates="trades")
+
+
+# -------------------------
+# Conversations (group chat sessions)
+# -------------------------
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id: Mapped[int] = Column(BigInteger, primary_key=True)
+    user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+
+    title = Column(String(100), nullable=True)
+
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    updated_at = Column(TIMESTAMP, nullable=False, onupdate=func.now())
+
+    positions: Mapped[List["Message"]] = relationship(back_populates="conversation")
+
+
+# -------------------------
+# Messages (individual chat messages)
+# -------------------------
+class Message(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[int] = Column(BigInteger, primary_key=True)
+
+    conversation_id = Column(BigInteger, ForeignKey("conversations.id"), nullable=False)
+
+    role = Column(Enum(MessageType), nullable=False)
+    content = Column(Text, nullable=False)
+
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    converstaion: Mapped["Conversation"] = relationship(back_populates="messages")
