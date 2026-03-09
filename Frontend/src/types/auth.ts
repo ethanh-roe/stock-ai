@@ -1,7 +1,8 @@
-export interface User {
+export interface UserInfo {
     id: number;
-    email: string;
     username: string;
+    created_at: string;
+    cash_balance: number;
 }
 
 export interface LoginRequest {
