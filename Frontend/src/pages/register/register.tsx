@@ -1,17 +1,13 @@
 import { Alert, Button, TextField } from "@mui/material";
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
 import AuthService from "../../services/authService";
 import "./register.css"
 import type { RegisterRequest } from "../../types/auth";
-
-// Type for error responses
-interface ErrorResponse {
-    detail: string;
-}
+import { useAuth } from "../../hooks/useAuth";
 
 const Register: React.FC = () => {
+    const { login } = useAuth();
     const navigate = useNavigate();
 
     const [registerData, setRegisterData] = useState<RegisterRequest>({
@@ -29,13 +25,14 @@ const Register: React.FC = () => {
             setError("All fields must be filled");
             return;
         }
-    
         setLoading(true);
         setError(null);
-
         try {
-            // Backend reponds with user information
-            const response = await AuthService.register(registerData);    
+            // Send register request
+            await AuthService.register(registerData);
+            // After registering, automatically login
+            await login({ username: registerData.username, password: registerData.password });
+            // Navigate to homepage
             navigate("/");
         } catch (err: any) {
             setError(err?.response?.data?.detail ?? "Failed to register account");
@@ -110,7 +107,7 @@ const Register: React.FC = () => {
             {loading && (
               <Alert severity="info">Logging in...</Alert>
             )}
-            
+
         </div>
     )
 }
