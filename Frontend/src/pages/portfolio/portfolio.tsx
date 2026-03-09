@@ -154,7 +154,7 @@ const Portfolio: React.FC = () => {
                 </Button>
               </Box>
 
-              {/* Cash Transfer Controls */}
+              {/* Balance Transfer */}
               <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                 <TextField
                   label="Amount"
@@ -164,8 +164,8 @@ const Portfolio: React.FC = () => {
                   onChange={e => setXferAmount(prev => ({ ...prev, [p.id]: Number(e.target.value) }))}
                   sx={{ width: 140 }}
                 />
-                <Button variant="outlined" size="small" onClick={() => handleCashIn(p.id)}>Cash In</Button>
-                <Button variant="outlined" size="small" color="warning" onClick={() => handleCashOut(p.id)}>Cash Out</Button>
+                <Button variant="contained" size="small" color="success" onClick={() => handleCashIn(p.id)}>Add</Button>
+                <Button variant="contained" size="small" color="error" onClick={() => handleCashOut(p.id)}>Withdraw</Button>
               </Box>
 
               {/* Positions */}
