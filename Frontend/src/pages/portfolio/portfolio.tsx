@@ -54,7 +54,7 @@ const Portfolio: React.FC = () => {
         initial_balance: initialBalance
       });
 
-      setPortfolios(prev => [...portfolios, newPortfolio]);
+      setPortfolios(prev => [...prev, newPortfolio]);
 
       // Update user balance
       if (user) setUser({...user, cash_balance: user.cash_balance - initialBalance });
