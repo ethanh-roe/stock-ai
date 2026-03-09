@@ -6,7 +6,7 @@ import type { UserInfo } from "../types/auth";
 
 export const useUser = () => {
     const { user, setUser } = useContext(AuthContext);
-    const { setItem } = useLocalStorage();
+    const { setItem, removeItem } = useLocalStorage();
 
     const addUser = (user: UserInfo) => {
         setUser(user);
@@ -14,6 +14,7 @@ export const useUser = () => {
     };
 
     const removeUser = () => {
+        removeItem("token");
         setUser(null);
         setItem("user", "");
     };

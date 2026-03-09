@@ -1,4 +1,3 @@
-import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -9,12 +8,12 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-import AuthService from "../../services/authService";
+import { useUser} from "../../hooks/useUser"
+import { useAuth } from "../../hooks/useAuth";
 
 const NavBar: React.FC = () => {
-  const handleLogout = () => {
-    AuthService.logout(); // Clears token
-  }
+  const { logout } = useAuth();
+  const { user } = useUser();
 
   return (
     <AppBar position="sticky" color="primary">
@@ -63,14 +62,24 @@ const NavBar: React.FC = () => {
             </Button>
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 2 }}>
+
+            {(
+              <Typography sx={{ fontWeight: 600 }}>
+                Balance: ${Number(user?.cash_balance).toFixed(2)}
+              </Typography>
+            )}
+
             <Button
               component={RouterLink}
               to="/login"
-              onClick={handleLogout}
-              variant="outlined" color="inherit" size="small">
-                Logout
-             </Button>
+              onClick={logout}
+              variant="outlined"
+              color="inherit" 
+              size="small"
+            >
+              Logout
+            </Button>
           </Box>
         </Toolbar>
       </Container>
