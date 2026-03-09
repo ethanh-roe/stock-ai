@@ -48,8 +48,6 @@ const Portfolio: React.FC = () => {
         initial_balance: initialBalance
       });
 
-      console.log("Created portfolio: ", newPortfolio);
-
       setPortfolios(prev => [...portfolios, newPortfolio]);
 
       // Update user balance
@@ -66,7 +64,11 @@ const Portfolio: React.FC = () => {
     const amount = xferAmount[portfolioId] ?? 0;
     if (amount <= 0) return;
     try {
-      const response = await PortfolioService.cashIn({ portfolio_id: portfolioId, xfer_amount: amount})
+      const response = await PortfolioService.cashIn({ 
+        portfolio_id: portfolioId, 
+        xfer_amount: amount
+      })
+
       // Update portfolio balance
       setPortfolios(prev => prev.map(p => p.id === portfolioId ? {...p, cash_balance: response.new_cash_balance } : p));
       // Update user balance
@@ -80,7 +82,11 @@ const Portfolio: React.FC = () => {
     const amount = xferAmount[portfolioId] ?? 0;
     if (amount <= 0) return;
     try {
-      const response = await PortfolioService.cashOut({ portfolio_id: portfolioId, xfer_amount: amount});
+      const response = await PortfolioService.cashOut({ 
+        portfolio_id: portfolioId, 
+        xfer_amount: amount
+      });
+
       // Update portfolio balance
       setPortfolios(prev => prev.map(p => p.id === portfolioId ? { ...p, cash_balance: response.new_cash_balance }: p));
       // Update user balance
