@@ -1,9 +1,28 @@
 export interface PortfolioInfo {
-    portfolio_id: number;
+    id: number;
     name: string;
-    creation_date: string;
+    created_at: string;
+    cash_balance: number;
 }
 
-export interface PortfolioCreate {
+export interface PortfolioCreateRequest {
     name: string;
+    initial_balance: number;
+}
+
+export interface CashTransferRequest {
+    portfolio_id: number;
+    xfer_amount: number;
+}
+
+export interface CashTransferResponse {
+    portfolio_id: number;
+    new_cash_balance: number;
+}
+
+export interface PositionInfo {
+    portfolio_id: number;
+    ticker: string;
+    quantity: number;
+    avg_cost_basis: number;
 }

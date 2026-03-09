@@ -8,6 +8,7 @@ import Login from "./pages/login/login";
 import Register from "./pages/register/register";
 import { About } from "./pages/about/about";
 import ProtectedRoute from "./components/protectedRoute";
+import { AuthProvider } from "./context/AuthContext";
 
 const router = createBrowserRouter([
   // Public
@@ -44,7 +45,6 @@ const router = createBrowserRouter([
             element: <Portfolio />
           },
           {
-            index: true,
             path: "about",
             element: <About />,
           },
@@ -56,10 +56,13 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </AuthProvider>
+    
   );
 }
 
