@@ -11,7 +11,7 @@ from sqlalchemy import (
     Index,
     TIMESTAMP,
     UniqueConstraint,
-    Text
+    Text,
 )
 import enum
 from typing import List
@@ -21,7 +21,8 @@ from typing import List
 class TradeType(str, enum.Enum):
     BUY = "BUY"
     SELL = "SELL"
-    
+
+
 class MessageType(str, enum.Enum):
     PROMPT = "PROMPT"
     RESPONSE = "RESPONSE"
@@ -207,4 +208,4 @@ class Message(Base):
 
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
-    converstaion: Mapped["Conversation"] = relationship(back_populates="messages")
+    conversation: Mapped["Conversation"] = relationship(back_populates="messages")

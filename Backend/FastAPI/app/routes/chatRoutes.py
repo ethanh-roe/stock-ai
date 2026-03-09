@@ -42,7 +42,7 @@ def create_conversation(
     return response
 
 
-# Adds new message to history of given conversation.
+# Adds new message to history of given conversation.s
 @router.post(
     "/addmessage",
     response_model=chatModels.MsgInfo,
@@ -87,3 +87,29 @@ def add_message(
     )
 
     return response
+
+
+# Grabs the chat history for a given conversation
+@router.get(
+    "/history/{conversation_id}",
+    response_model=chatModels.ConversationHistory,
+    summary="Gets chat history for given conversation.",
+)
+def get_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(user_from_jwt),
+):
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.user_id,
+        )
+        .first()
+    )
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return conversation
