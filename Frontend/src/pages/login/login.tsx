@@ -1,24 +1,15 @@
-import { Button, TextField } from "@mui/material";
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
-
-import AuthService from "../../services/authService";
+import { Button, TextField } from "@mui/material";
 import "./login.css"
-import api from "../../types/api";
 
 import type { LoginRequest } from "../../types/auth";
-import type { UserInfo } from "../../types/auth";
-
-// Type for error responses
-interface ErrorResponse {
-    detail: string;
-}
+import { useAuth } from "../../hooks/useAuth";
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
-    
+    const { login } = useAuth();
+
     const [loginData, setLoginData] = useState<LoginRequest>({
             username: "",
             password: ""
@@ -29,29 +20,19 @@ const Login: React.FC = () => {
             password?: string;
         }>({});
     
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
-    // Fetch user info after login
-    const fetchUser = async (): Promise<UserInfo> => {
-        const response = await api.get<UserInfo>("users/uinfo");
-        console.log(response.data);
-        return response.data;
-    }
 
     const handleLogin = async (): Promise<void> => {
         // Validate all inputFields have input
-
         const errors: typeof inputErrors = {};
 
         if (!loginData.username.trim()) {
             errors.username = "Username or Email is required";
         }
-
         if (!loginData.password.trim()) {
             errors.password = "Password is required";
         }
-
         if (Object.keys(errors).length > 0) {
             setInputErrors(errors);
             return;
@@ -60,39 +41,12 @@ const Login: React.FC = () => {
         setInputErrors({});
         setLoading(true);
         setError(null);
+
         try {
-            // Backends responds with token information
-            const response = await AuthService.login(loginData);
-
-            console.log("LOGIN RESPONSE: ", response);
-
-            // Store token in localStorage
-            localStorage.setItem("token", response.access_token);
-
-            // Get user info
-            const userInfo = await fetchUser();
-            localStorage.setItem("user", JSON.stringify(userInfo));
-
-            console.log("Fetched user:", userInfo);
-            
+            await login(loginData);
             navigate("/");
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                const error = err as AxiosError<ErrorResponse>;
-
-                // HTTP status code
-                const status = error.response?.status;
-
-                // Message from backend
-                const msg = error.response?.data?.detail;
-
-                console.log("Status:", status);
-                console.log("Detail:", msg);
-                
-                setError(msg || "Unknown error occured");
-            } else {
-                setError("An unexpected error occured");
-            }
+        } catch (err: any) {
+           setError(err.response.data.detail || "Unexpected error");
         } finally {
             setLoading(false);
         }
@@ -151,9 +105,8 @@ const Login: React.FC = () => {
             
             {error && <p className="error">{error}</p>}
             {loading && <p>Loading...</p>}
-
         </div>
-    )
-}
+    );
+};
 
 export default Login;

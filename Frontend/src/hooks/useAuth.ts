@@ -1,21 +1,22 @@
-import { useEffect } from "react";
 import { useUser} from "./useUser";
-import { useLocalStorage } from "./useLocalStorage";
-import type { UserInfo } from "../types/auth";
+import type { UserInfo, LoginRequest } from "../types/auth";
+import AuthService from "../services/authService";
+import api from "../types/api";
 
 export const useAuth = () => {
     const { user, addUser, removeUser, setUser } = useUser();
-    const { getItem } = useLocalStorage();
 
-    useEffect(() => {
-        const storedUser = getItem("user");
-        if (storedUser) {
-            addUser(JSON.parse(storedUser));
-        }
-    }, [addUser, getItem]);
+    const login = async (loginData: LoginRequest): Promise<void> => {
+        // Backends responds with token information
+        const tokenResponse = await AuthService.login(loginData);
 
-    const login = (user: UserInfo) => {
-        addUser(user);
+        // Store token in localStorage
+        localStorage.setItem("token", tokenResponse.access_token);
+
+        // Get user info
+        const { data: userInfo } = await api.get<UserInfo>("users/uinfo");
+
+        addUser(userInfo);
     };
 
     const logout = () => {
