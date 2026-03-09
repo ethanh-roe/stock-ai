@@ -68,11 +68,11 @@ def add_message(
 
     # Create Message entry
     new_msg = Message(
-        conversation_id=msg.conversation_id, role=msg.type, content=msg.text
+        conversation_id=msg.conversation_id, role=msg.role, content=msg.content
     )
 
     try:
-        db.add()
+        db.add(new_msg)
         db.commit()
         db.refresh(new_msg)
     except IntegrityError as e:
@@ -81,8 +81,8 @@ def add_message(
 
     response = chatModels.MsgInfo(
         conversation_id=new_msg.conversation_id,
-        type=new_msg.role,
-        text=new_msg.content,
+        role=new_msg.role,
+        content=new_msg.content,
         created_at=new_msg.created_at,
     )
 

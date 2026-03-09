@@ -12,14 +12,14 @@ class ConversationInfo(BaseModel):
 
 class NewMsg(BaseModel):
     conversation_id: int
-    type: MessageType
-    text: str
+    role: MessageType
+    content: str
 
 
 class MsgInfo(BaseModel):
     conversation_id: int
-    type: MessageType
-    text: str
+    role: MessageType
+    content: str
     created_at: datetime
 
 
