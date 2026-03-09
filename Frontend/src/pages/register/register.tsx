@@ -1,9 +1,7 @@
-import { Button, TextField } from "@mui/material";
-
+import { Alert, Button, TextField } from "@mui/material";
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
-
 import AuthService from "../../services/authService";
 import "./register.css"
 import type { RegisterRequest } from "../../types/auth";
@@ -23,72 +21,24 @@ const Register: React.FC = () => {
         initial_balance: 1000
     });
 
-    const [inputErrors, setInputErrors] = useState<{
-        username?: string;
-        email?: string;
-        password?: string;
-    }>({});
-
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleRegister = async (): Promise<void> => {
-        // Validate all inputFields have input
-
-        const errors: typeof inputErrors = {};
-
-        if (!registerData.username.trim()) {
-            errors.username = "Username is required";
-        }
-
-        if (!registerData.email.trim()) {
-            errors.email = "Email is required";
-        }
-
-        if (!registerData.password.trim()) {
-            errors.password = "Password is required";
-        }
-
-        if (Object.keys(errors).length > 0) {
-            setInputErrors(errors);
+        if(!registerData.username.trim() || !registerData.email.trim() || !registerData.password.trim()) {
+            setError("All fields must be filled");
             return;
         }
-
-        setInputErrors({});
+    
         setLoading(true);
         setError(null);
+
         try {
             // Backend reponds with user information
-            const response = await AuthService.register(registerData);
-
-            console.log("REGISTER RESPONSE: ", response);
-                
+            const response = await AuthService.register(registerData);    
             navigate("/");
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                const error = err as AxiosError<ErrorResponse>;
-
-                // HTTP status code
-                const status = error.response?.status;
-
-                // Message from backend
-                const detail = error.response?.data?.detail;
-
-                let msg = "Unknown error occured";
-
-                if (Array.isArray(detail) && detail.length > 0) {
-                    msg = detail[0].msg;
-                } else if (typeof detail == "string") {
-                    msg = detail;
-                }
-
-                console.log("Status:", status);
-                console.log("Detail:", msg);
-                
-                setError(msg || "Unknown error occured");
-            } else {
-                setError("An unexpected error occured");
-            }
+        } catch (err: any) {
+            setError(err?.response?.data?.detail ?? "Failed to register account");
         } finally {
             setLoading(false);
         }
@@ -106,8 +56,6 @@ const Register: React.FC = () => {
                 required
                 label="Username"
                 value={registerData.username}
-                error={!!inputErrors.username}
-                helperText={inputErrors.username}
                 onChange={(e) => setRegisterData(prev => ({
                     ...prev,
                     username: e.target.value
@@ -119,8 +67,6 @@ const Register: React.FC = () => {
                 required
                 label="Email"
                 value={registerData.email}
-                error={!!inputErrors.email}
-                helperText={inputErrors.email}
                 onChange={(e) => setRegisterData(prev => ({
                     ...prev,
                     email: e.target.value
@@ -133,8 +79,6 @@ const Register: React.FC = () => {
                 label="Password"
                 type="password"
                 value={registerData.password}
-                error={!!inputErrors.password}
-                helperText={inputErrors.password}
                 onChange={(e) => setRegisterData(prev => ({
                     ...prev,
                     password: e.target.value
@@ -158,9 +102,15 @@ const Register: React.FC = () => {
                 </Button>
             </div>
 
-            {error && <p className="error">{error}</p>}
-            {loading && <p>Loading...</p>}
-
+            {error && (
+                <Alert severity="error" onClose={() => setError(null)}>
+                    {error}
+                </Alert>
+            )}
+            {loading && (
+              <Alert severity="info">Logging in...</Alert>
+            )}
+            
         </div>
     )
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PortfolioService from "../../services/portfolioService";
 import type { PortfolioInfo, PositionInfo } from "../../types/portfolio";
-import { Box, Button, TextField, List, ListItem, ListItemText, Typography, Divider, Collapse } from "@mui/material";
+import { Alert, Box, Button, TextField, List, ListItem, ListItemText, Typography, Divider, Collapse } from "@mui/material";
 import { useUser } from "../../hooks/useUser";
 
 const Portfolio: React.FC = () => {
@@ -21,6 +21,8 @@ const Portfolio: React.FC = () => {
   const [expandedPortfolio, setExpandedPortfolio] = useState<number | null>(null);
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
+  // Error state
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPortfolios = async () => {
     setLoading(true);
@@ -40,7 +42,11 @@ const Portfolio: React.FC = () => {
   }, []);
 
   const handleCreate = async () => {
-    if (!portfolioName) return;
+    if (!portfolioName) {
+      setError("Portfolio name cannot be empty");
+      return;
+    }
+    setError(null);
 
     try {
       const newPortfolio = await PortfolioService.create({ 
@@ -55,8 +61,8 @@ const Portfolio: React.FC = () => {
       
       setPortfolioName("");
       setInitialBalance(0);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail ?? "Failed to create portfolio");
     }
   };
 
@@ -73,8 +79,8 @@ const Portfolio: React.FC = () => {
       setPortfolios(prev => prev.map(p => p.id === portfolioId ? {...p, cash_balance: response.new_cash_balance } : p));
       // Update user balance
       if (user) setUser({ ...user, cash_balance: user.cash_balance - amount });
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail ?? "Failed to transfer balance to portfolio");
     }
   };
 
@@ -91,8 +97,8 @@ const Portfolio: React.FC = () => {
       setPortfolios(prev => prev.map(p => p.id === portfolioId ? { ...p, cash_balance: response.new_cash_balance }: p));
       // Update user balance
       if (user) setUser({ ...user, cash_balance: user.cash_balance + amount });
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail ?? "Failed to transfer balance from portfolio");
     }
   };
 
@@ -120,6 +126,12 @@ const Portfolio: React.FC = () => {
         <TextField label="Initial Balance" value={initialBalance} type="number" onChange={e => setInitialBalance(Number(e.target.value))} size="small" />
         <Button variant="contained" onClick={handleCreate}>Create</Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2}}>
+          {error}
+        </Alert>
+      )}
 
       {loading ? (
         <Typography>Loading Portfolios...</Typography>
