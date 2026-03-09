@@ -30,3 +30,7 @@ class ConversationHistory(BaseModel):
 
     class Config:
         orm_mode = True
+        
+class ConvoRename(BaseModel):
+    id: int
+    title: str

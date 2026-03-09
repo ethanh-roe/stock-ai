@@ -14,7 +14,7 @@ router = APIRouter(prefix="/chat", tags=["chat messages"])
 
 # Creates a new conversation to store a sequence of messages to/from LLM.
 @router.post(
-    "/newconversation",
+    "/conversation/new",
     response_model=chatModels.ConversationInfo,
     summary="Creates a new conversation for message storage.",
 )
@@ -41,10 +41,39 @@ def create_conversation(
 
     return response
 
+@router.patch(
+    "/conversation/rename",
+    response_model = chatModels.ConversationInfo,
+    summary="Rename a conversation."
+)
+def rename_convo(
+    request: chatModels.ConvoRename,
+    db: Session = Depends(get_db),
+    current_user = Depends(user_from_jwt)
+):
+    convo = db.query(Conversation).filter(
+        Conversation.id == request.id,
+        Conversation.user_id == current_user.user_id
+    ).first()
+
+    if not convo:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    convo.title = request.title
+
+    db.commit()
+    db.refresh(convo)
+    
+    response = chatModels.ConversationInfo(
+        id=convo.id, title=convo.title, created_at=convo.created_at
+    )
+
+    return convo
+
 
 # Adds new message to history of given conversation.s
 @router.post(
-    "/addmessage",
+    "/conversation/addmsg",
     response_model=chatModels.MsgInfo,
     summary="Adds a message to a conversation's history.",
 )
@@ -91,7 +120,7 @@ def add_message(
 
 # Grabs the chat history for a given conversation
 @router.get(
-    "/history/{conversation_id}",
+    "/conversation/{conversation_id}",
     response_model=chatModels.ConversationHistory,
     summary="Gets chat history for given conversation.",
 )
