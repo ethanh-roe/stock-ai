@@ -1,24 +1,132 @@
-.register-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    gap: 5px;
+* {
+  font-family: 'Inter', sans-serif;
 }
 
-
-.register-container input {
-  padding: 8px;
-  width: 200px;
+/* ── Page layout ── */
+.register-page {
+  display: flex;
+  height: 100vh;
+  background-color: #faf8f5;
 }
 
-.register-container button {
-  padding: 8px 16px;
+/* ── Left panel ── */
+.register-left {
+  flex: 1;
+  background-color: #f0ebe1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8rem 48px 0;
+  overflow: hidden;
+}
+
+.register-left-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 400px;
+}
+
+.register-left-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1a1714;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.register-left-sub {
+  font-size: 1rem;
+  color: #6b6154;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.register-illustration {
+  margin-top: auto;
+  width: 66.67%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Right panel ── */
+.register-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12rem 32px 48px;
+  background-color: #faf8f5;
+}
+
+.register-form-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ── "Already have an account?" line ── */
+.register-already {
+  font-size: 0.875rem;
+  color: #7a6f63;
+  margin: 0 0 8px 0;
+}
+
+.register-link {
+  color: #1c1c1c;
+  font-weight: 600;
   cursor: pointer;
+  text-decoration: underline;
 }
 
-.button-row {
-    display: flex;
-    gap: 10px;
+.register-link:hover {
+  color: #555;
+}
+
+/* ── Name row ── */
+.register-name-row {
+  display: flex;
+  gap: 12px;
+}
+
+/* ── Continue button ── */
+.btn-register {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: none;
+  background-color: #1c1c1c;
+  color: #faf8f5;
+  transition: background-color 0.2s, opacity 0.2s;
+  margin-top: auto;
+}
+
+.btn-register:hover:not(:disabled) {
+  background-color: #333333;
+}
+
+.btn-register:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .register-left {
+    display: none;
+  }
+
+  .register-right {
+    padding: 32px 24px;
+  }
 }

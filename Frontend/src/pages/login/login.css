@@ -1,14 +1,18 @@
+* {
+    font-family: 'Inter', sans-serif;
+}
+
 /* ── Page layout ── */
 .login-page {
     display: flex;
     min-height: 100vh;
-    background-color: #ffffff;
+    background-color: #faf8f5;
 }
 
 /* ── Left panel ── */
 .login-left {
     flex: 1;
-    background-color: #eaf4fd;
+    background-color: #f0ebe1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -30,7 +34,7 @@
     align-items: center;
     justify-content: center;
     padding: 48px 32px;
-    background-color: #ffffff;
+    background-color: #faf8f5;
 }
 
 .login-form-wrapper {
@@ -45,7 +49,7 @@
 .login-title {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1a1a2e;
+    color: #1a1714;
     margin: 0 0 8px 0;
     letter-spacing: -0.5px;
 }
@@ -64,28 +68,29 @@
     border-radius: 50px;
     font-size: 1rem;
     font-weight: 600;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: background-color 0.2s, opacity 0.2s;
     border: none;
 }
 
 .btn-primary {
-    background-color: #4a9fd4;
-    color: #ffffff;
+    background-color: #1c1c1c;
+    color: #faf8f5;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #3a8ec3;
+    background-color: #333333;
 }
 
 .btn-secondary {
     background-color: transparent;
-    color: #4a9fd4;
-    border: 2px solid #4a9fd4;
+    color: #1c1c1c;
+    border: 2px solid #c4b9a8;
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background-color: #eaf4fd;
+    background-color: #ede8de;
 }
 
 .btn-primary:disabled,
@@ -97,20 +102,20 @@
 /* ── Footer ── */
 .login-footer {
     font-size: 0.875rem;
-    color: #666;
+    color: #7a6f63;
     text-align: center;
     margin: 0;
 }
 
 .login-link {
-    color: #4a9fd4;
+    color: #1c1c1c;
     font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
 }
 
 .login-link:hover {
-    color: #3a8ec3;
+    color: #555;
 }
 
 /* ── Responsive: stack on small screens ── */

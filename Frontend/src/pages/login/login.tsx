@@ -57,7 +57,7 @@ const Login: React.FC = () => {
       {/* Right panel — form */}
       <div className="login-right">
         <div className="login-form-wrapper">
-          <h1 className="login-title">Log in to ISU's Stock Trainer</h1>
+          <h1 className="login-title">Log in to STOCK-AI</h1>
 
           <TextField
             fullWidth
@@ -137,12 +137,14 @@ const Login: React.FC = () => {
 const fieldSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "10px",
-    backgroundColor: "#f7f9fc",
-    "& fieldset": { borderColor: "#c9dff5" },
-    "&:hover fieldset": { borderColor: "#7db8e8" },
-    "&.Mui-focused fieldset": { borderColor: "#4a9fd4" },
+    backgroundColor: "#f5f1ea",
+    fontFamily: "'Inter', sans-serif",
+    "& fieldset": { borderColor: "#d4c9b8" },
+    "&:hover fieldset": { borderColor: "#a89880" },
+    "&.Mui-focused fieldset": { borderColor: "#1c1c1c" },
   },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#4a9fd4" },
+  "& .MuiInputLabel-root": { fontFamily: "'Inter', sans-serif" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#1c1c1c" },
 };
 
 export default Login;
