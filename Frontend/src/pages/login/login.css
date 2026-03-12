@@ -1,24 +1,125 @@
-.login-container {
+/* ── Page layout ── */
+.login-page {
+    display: flex;
+    min-height: 100vh;
+    background-color: #ffffff;
+}
+
+/* ── Left panel ── */
+.login-left {
+    flex: 1;
+    background-color: #eaf4fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.login-illustration {
+    width: 60%;
+    max-width: 320px;
+    object-fit: contain;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* ── Right panel ── */
+.login-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 32px;
+    background-color: #ffffff;
+}
+
+.login-form-wrapper {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    gap: 5px;
+    gap: 20px;
+    width: 100%;
+    max-width: 420px;
 }
 
-
-.login-container input {
-  padding: 8px;
-  width: 200px;
+/* ── Title ── */
+.login-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
 }
 
-.login-container button {
-  padding: 8px 16px;
-  cursor: pointer;
-}
-
-.button-row {
+/* ── Buttons ── */
+.login-button-row {
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 14px 0;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #4a9fd4;
+    color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #3a8ec3;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #4a9fd4;
+    border: 2px solid #4a9fd4;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #eaf4fd;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Footer ── */
+.login-footer {
+    font-size: 0.875rem;
+    color: #666;
+    text-align: center;
+    margin: 0;
+}
+
+.login-link {
+    color: #4a9fd4;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.login-link:hover {
+    color: #3a8ec3;
+}
+
+/* ── Responsive: stack on small screens ── */
+@media (max-width: 768px) {
+    .login-left {
+        display: none;
+    }
+
+    .login-right {
+        padding: 32px 24px;
+    }
 }
