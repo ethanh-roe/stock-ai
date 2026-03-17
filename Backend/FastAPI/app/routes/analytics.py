@@ -9,8 +9,3 @@ from app.schema import Portfolio, Position, Ticker, User
 from app.database import get_db
 
 router = APIRouter(prefix="/ai", tags=["ai"])
-
-@router.post(
-
-)
-def chat
