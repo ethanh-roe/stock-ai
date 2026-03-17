@@ -1,4 +1,4 @@
-export interface StockProfile {
+export interface StockProfileModal {
   ticker: string;
   name: string;
   country: string;

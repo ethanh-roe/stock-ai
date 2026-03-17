@@ -1,0 +1,329 @@
+import { Paper, Box, Typography, Chip, TextField, IconButton } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { useEffect, useRef, useState } from "react";
+import {
+  Send as SendIcon,
+  AutoAwesome as SparkleIcon,
+  Person as PersonIcon,
+} from "@mui/icons-material";
+import axios from "axios";
+
+const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
+
+const SUGGESTED_QUESTIONS = [
+  "What does this company do?",
+  "What are the key risks?",
+  "Who are the main competitors?",
+  "What's the growth outlook?",
+];
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
+type StockChatbotProps = {
+  ticker: string;
+};
+
+const StockChatbot = ({ ticker }: StockChatbotProps) => {
+  const theme = useTheme();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMessages([]);
+    setInput("");
+  }, [ticker]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const systemPrompt = ticker
+    ? `You are a knowledgeable stock market analyst and financial educator. The user is currently viewing ${ticker}.
+Help them understand this company — its business model, financials, competitive position, risks, and growth prospects.
+Be concise, insightful, and educational. Use plain language. Avoid giving direct investment advice like "you should buy/sell".
+Format responses clearly with short paragraphs. Keep answers under 200 words unless the question demands more depth.`
+    : `You are a helpful stock market educator. Help users learn about stocks, investing concepts, and market dynamics. Keep answers concise and educational.`;
+
+  const sendMessage = async (text?: string) => {
+    const messageText = (text ?? input).trim();
+    if (!messageText || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: messageText,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const conversationHistory = [...messages, userMessage].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const response = await axios.post(`${BASE_URL}/ai/chat`, {
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: conversationHistory,
+      });
+
+      const assistantText =
+        response.data?.content?.[0]?.text ??
+        "Sorry, I couldn't generate a response. Please try again.";
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: assistantText, timestamp: new Date() },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Something went wrong. Please check your connection and try again.",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  };
+
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+  const isEmpty = messages.length === 0;
+
+  const accentGradient = "linear-gradient(135deg, #4F6EF7 0%, #a78bfa 100%)";
+  const accent = "#4F6EF7";
+  const accentDark = "#3A55D4";
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        borderRadius: 2.5,
+        border: `1px solid ${theme.palette.divider}`,
+        bgcolor: "background.paper",
+        display: "flex",
+        flexDirection: "column",
+        height: 480,
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          px: 2.5, py: 1.75,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          display: "flex", alignItems: "center", gap: 1.25,
+          flexShrink: 0,
+        }}
+      >
+        <Box sx={{ width: 32, height: 32, borderRadius: "50%", background: accentGradient, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <SparkleIcon sx={{ fontSize: 16, color: "#fff" }} />
+        </Box>
+        <Box>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "text.primary", lineHeight: 1.2 }}>
+            AI Stock Assistant
+          </Typography>
+          <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 600 }}>
+            {ticker ? `Analyzing ${ticker}` : "Ask me anything about stocks"}
+          </Typography>
+        </Box>
+        <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#22c55e" }} />
+          <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 600 }}>Online</Typography>
+        </Box>
+      </Box>
+      <Box sx={{ flexGrow: 1, overflowY: "auto", px: 2.5, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+        {isEmpty ? (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 2.5 }}>
+            <Box sx={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, rgba(79,110,247,0.12) 0%, rgba(167,139,250,0.12) 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <SparkleIcon sx={{ fontSize: 28, color: accent }} />
+            </Box>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary", mb: 0.5 }}>
+                {ticker ? `Ask me about ${ticker}` : "Select a ticker to get started"}
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.disabled" }}>
+                {ticker
+                  ? "Get instant insights on business model, risks, competitors, and more"
+                  : "Search for a stock above, then ask questions here"}
+              </Typography>
+            </Box>
+            {ticker && (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "center", maxWidth: 480 }}>
+                {SUGGESTED_QUESTIONS.map((q) => (
+                  <Chip
+                    key={q} label={q} size="small"
+                    onClick={() => sendMessage(q)}
+                    sx={{
+                      height: 28, fontSize: "0.72rem", fontWeight: 600,
+                      bgcolor: "background.default", color: "text.secondary",
+                      border: `1px solid ${theme.palette.divider}`, cursor: "pointer",
+                      "&:hover": { bgcolor: "#eef0fb", color: accent, borderColor: "#c7d0f7" },
+                      transition: "all 0.15s",
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        ) : (
+          <>
+            {messages.map((msg, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  display: "flex",
+                  flexDirection: msg.role === "user" ? "row-reverse" : "row",
+                  alignItems: "flex-start",
+                  gap: 1.25,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    ...(msg.role === "assistant"
+                      ? { background: accentGradient }
+                      : { bgcolor: "background.default", border: `1px solid ${theme.palette.divider}` }),
+                  }}
+                >
+                  {msg.role === "assistant"
+                    ? <SparkleIcon sx={{ fontSize: 14, color: "#fff" }} />
+                    : <PersonIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+                  }
+                </Box>
+                <Box sx={{ maxWidth: "78%", display: "flex", flexDirection: "column", gap: 0.4, alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                  <Box
+                    sx={{
+                      px: 1.75, py: 1.25,
+                      borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
+                      ...(msg.role === "user"
+                        ? { bgcolor: accent, color: "#fff" }
+                        : { bgcolor: "background.default", color: "text.primary", border: `1px solid ${theme.palette.divider}` }),
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        lineHeight: 1.6, fontSize: "0.82rem",
+                        fontWeight: msg.role === "user" ? 600 : 400,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {msg.content}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: "text.disabled", fontSize: "0.65rem", px: 0.5 }}>
+                    {formatTime(msg.timestamp)}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+            {isLoading && (
+              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.25 }}>
+                <Box sx={{ width: 30, height: 30, borderRadius: "50%", flexShrink: 0, background: accentGradient, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <SparkleIcon sx={{ fontSize: 14, color: "#fff" }} />
+                </Box>
+                <Box sx={{ px: 1.75, py: 1.25, borderRadius: "4px 16px 16px 16px", bgcolor: "background.default", border: `1px solid ${theme.palette.divider}`, display: "flex", alignItems: "center", gap: 0.5 }}>
+                  {[0, 1, 2].map((i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        bgcolor: accent, opacity: 0.4,
+                        animation: "bounce 1.2s ease-in-out infinite",
+                        animationDelay: `${i * 0.2}s`,
+                        "@keyframes bounce": {
+                          "0%, 80%, 100%": { transform: "scale(0.8)", opacity: 0.4 },
+                          "40%": { transform: "scale(1.2)", opacity: 1 },
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </Box>
+      {!isEmpty && ticker && !isLoading && (
+        <Box sx={{ px: 2.5, pt: 1, pb: 0.5, display: "flex", gap: 0.5, flexWrap: "wrap", borderTop: `1px solid ${theme.palette.divider}` }}>
+          {SUGGESTED_QUESTIONS.slice(0, 3).map((q) => (
+            <Chip
+              key={q} label={q} size="small"
+              onClick={() => sendMessage(q)}
+              sx={{
+                height: 24, fontSize: "0.68rem", fontWeight: 600,
+                bgcolor: "background.default", color: "text.secondary", cursor: "pointer",
+                "&:hover": { bgcolor: "#eef0fb", color: accent },
+                transition: "all 0.15s",
+              }}
+            />
+          ))}
+        </Box>
+      )}
+      <Box
+        sx={{
+          px: 2, py: 1.5, borderTop: `1px solid ${theme.palette.divider}`,
+          display: "flex", alignItems: "center", gap: 1,
+          flexShrink: 0, bgcolor: "background.default",
+        }}
+      >
+        <TextField
+          inputRef={inputRef}
+          size="small" fullWidth
+          placeholder={ticker ? `Ask about ${ticker}…` : "Select a ticker first…"}
+          value={input}
+          disabled={!ticker || isLoading}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+          multiline maxRows={3}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2.5, fontSize: "0.82rem", bgcolor: "background.paper",
+              "& fieldset": { borderColor: theme.palette.divider },
+              "&:hover fieldset": { borderColor: accent },
+              "&.Mui-focused fieldset": { borderColor: accent },
+            },
+          }}
+        />
+        <IconButton
+          onClick={() => sendMessage()}
+          disabled={!ticker || !input.trim() || isLoading}
+          sx={{
+            width: 38, height: 38, flexShrink: 0,
+            bgcolor: accent, color: "#fff", borderRadius: 2,
+            "&:hover": { bgcolor: accentDark },
+            "&:disabled": { bgcolor: "background.default", color: "text.disabled" },
+            transition: "all 0.15s",
+          }}
+        >
+          <SendIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Box>
+    </Paper>
+  );
+};
+
+export default StockChatbot;

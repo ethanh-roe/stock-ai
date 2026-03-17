@@ -1,30 +1,22 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-
-const font = "'Inter', sans-serif";
 
 const features = [
   {
     title: "BLAHHHH",
     body: "BLAHHHH",
-    icon: (
-      <ShowChartIcon sx={{ fontSize: 64, color: "#1a1714", opacity: 0.25 }} />
-    ),
+    icon: <ShowChartIcon sx={{ fontSize: 64, color: "text.primary", opacity: 0.25 }} />,
   },
   {
     title: "WBLAHHHH",
     body: "a;dkfklasdf",
-    icon: (
-      <ShowChartIcon sx={{ fontSize: 64, color: "#1a1714", opacity: 0.25 }} />
-    ),
+    icon: <ShowChartIcon sx={{ fontSize: 64, color: "text.primary", opacity: 0.25 }} />,
   },
   {
     title: "faiwefhualef",
     body: "aiweuhfliauehflia",
-    icon: (
-      <ShowChartIcon sx={{ fontSize: 64, color: "#1a1714", opacity: 0.25 }} />
-    ),
+    icon: <ShowChartIcon sx={{ fontSize: 64, color: "text.primary", opacity: 0.25 }} />,
   },
 ];
 
@@ -59,12 +51,11 @@ export const About: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ backgroundColor: "#faf8f5", fontFamily: font }}>
-      {/* ── Dark banner with radiating lines ── */}
+    <Box sx={{ backgroundColor: "background.default" }}>
       <Box
         sx={{
           position: "relative",
-          backgroundColor: "#1c1c1c",
+          backgroundColor: "primary.main",
           height: "380px",
           overflow: "hidden",
           display: "flex",
@@ -76,29 +67,22 @@ export const About: React.FC = () => {
         }}
       >
         <Typography
+          variant="overline"
           sx={{
             position: "relative",
-            fontSize: "0.8rem",
-            fontWeight: 600,
-            color: "#e8ddd0",
-            fontFamily: font,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
             mb: 3,
             opacity: 0.7,
+            color: "primary.contrastText",
           }}
         >
           Iowa State University · COMS 402 Senior Design
         </Typography>
         <Typography
+          variant="h2"
           sx={{
             position: "relative",
             fontSize: { xs: "2.25rem", md: "3.25rem" },
-            fontWeight: 700,
             color: "#ffffff",
-            fontFamily: font,
-            lineHeight: 1.1,
-            letterSpacing: "-1px",
             maxWidth: 520,
             mb: 2.5,
           }}
@@ -106,32 +90,22 @@ export const About: React.FC = () => {
           Learn to invest without risking a dime
         </Typography>
         <Typography
+          variant="body1"
           sx={{
             position: "relative",
             fontSize: "1rem",
-            color: "#a89880",
-            fontFamily: font,
-            lineHeight: 1.7,
+            color: "secondary.main",
             maxWidth: 420,
           }}
         >
           Real market data, AI-powered insights, zero real money on the line.
         </Typography>
       </Box>
-
-      {/* ── Hero Section ── */}
-      <Box
-        sx={{
-          display: "flex",
-          height: "680px",
-          overflow: "hidden",
-        }}
-      >
-        {/* Left — image placeholder */}
+      <Box sx={{ display: "flex", height: "680px", overflow: "hidden" }}>
         <Box
           sx={{
             flex: 1,
-            backgroundColor: "#f0ebe1",
+            backgroundColor: "background.paper",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -150,8 +124,6 @@ export const About: React.FC = () => {
             }}
           />
         </Box>
-
-        {/* Right — copy */}
         <Box
           sx={{
             flex: 1,
@@ -163,27 +135,16 @@ export const About: React.FC = () => {
           }}
         >
           <Typography
-            sx={{
-              fontSize: { xs: "2.5rem", md: "3.5rem" },
-              fontWeight: 700,
-              color: "#1a1714",
-              fontFamily: font,
-              lineHeight: 1.1,
-              letterSpacing: "-1px",
-            }}
+            variant="h1"
+            sx={{ fontSize: { xs: "2.5rem", md: "3.5rem" }, color: "text.primary" }}
           >
             Practice investing.
             <br />
             Risk-free.
           </Typography>
           <Typography
-            sx={{
-              fontSize: "1.125rem",
-              color: "#7a6f63",
-              fontFamily: font,
-              lineHeight: 1.7,
-              maxWidth: 460,
-            }}
+            variant="body1"
+            sx={{ fontSize: "1.125rem", maxWidth: 460 }}
           >
             Stock-AI is a senior design project from Iowa State University — a
             paper-trading platform with real market data and AI-powered
@@ -191,43 +152,15 @@ export const About: React.FC = () => {
             money on the line.
           </Typography>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <button
-              onClick={() => navigate("/register")}
-              style={{
-                padding: "14px 32px",
-                borderRadius: "50px",
-                fontSize: "1rem",
-                fontWeight: 600,
-                fontFamily: font,
-                cursor: "pointer",
-                border: "none",
-                backgroundColor: "#1c1c1c",
-                color: "#faf8f5",
-              }}
-            >
+            <Button variant="contained" onClick={() => navigate("/register")}>
               Get started
-            </button>
-            <button
-              onClick={() => navigate("/login")}
-              style={{
-                padding: "14px 32px",
-                borderRadius: "50px",
-                fontSize: "1rem",
-                fontWeight: 600,
-                fontFamily: font,
-                cursor: "pointer",
-                backgroundColor: "transparent",
-                color: "#1c1c1c",
-                border: "2px solid #d4c9b8",
-              }}
-            >
+            </Button>
+            <Button variant="outlined" onClick={() => navigate("/login")}>
               Log in
-            </button>
+            </Button>
           </Box>
         </Box>
       </Box>
-
-      {/* ── Platform feature sections ── */}
       {platformFeatures.map((f, i) => (
         <Box
           key={i}
@@ -236,14 +169,13 @@ export const About: React.FC = () => {
             flexDirection: f.flip ? "row-reverse" : "row",
             height: "600px",
             backgroundColor: f.dark
-              ? "#1c1c1c"
+              ? "primary.main"
               : i === 1
-                ? "#f0ebe1"
-                : "#faf8f5",
+                ? "background.paper"
+                : "background.default",
             overflow: "hidden",
           }}
         >
-          {/* Image */}
           <Box
             sx={{
               flex: 1,
@@ -266,8 +198,6 @@ export const About: React.FC = () => {
               }}
             />
           </Box>
-
-          {/* Copy */}
           <Box
             sx={{
               flex: 1,
@@ -278,36 +208,21 @@ export const About: React.FC = () => {
               gap: 2.5,
             }}
           >
+            <Typography variant="overline">{f.tag}</Typography>
             <Typography
-              sx={{
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                color: f.dark ? "#a89880" : "#a89880",
-                fontFamily: font,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
-            >
-              {f.tag}
-            </Typography>
-            <Typography
+              variant="h2"
               sx={{
                 fontSize: { xs: "2rem", md: "2.75rem" },
-                fontWeight: 700,
-                color: f.dark ? "#ffffff" : "#1a1714",
-                fontFamily: font,
-                lineHeight: 1.15,
-                letterSpacing: "-0.5px",
+                color: f.dark ? "#ffffff" : "text.primary",
               }}
             >
               {f.title}
             </Typography>
             <Typography
+              variant="body1"
               sx={{
                 fontSize: "1.05rem",
-                color: f.dark ? "#a89880" : "#7a6f63",
-                fontFamily: font,
-                lineHeight: 1.7,
+                color: f.dark ? "secondary.main" : "text.secondary",
                 maxWidth: 460,
               }}
             >
@@ -316,30 +231,15 @@ export const About: React.FC = () => {
           </Box>
         </Box>
       ))}
-
-      {/* ── Basics cards section (image 4 style) ── */}
-      <Box sx={{ backgroundColor: "#faf8f5", py: 12, px: { xs: 4, md: 8 } }}>
+      <Box sx={{ backgroundColor: "background.default", py: 12, px: { xs: 4, md: 8 } }}>
         <Box sx={{ textAlign: "center", mb: 8 }}>
           <Typography
-            sx={{
-              fontSize: { xs: "2.25rem", md: "3rem" },
-              fontWeight: 700,
-              color: "#1a1714",
-              fontFamily: font,
-              letterSpacing: "-0.5px",
-              mb: 2,
-            }}
+            variant="h2"
+            sx={{ fontSize: { xs: "2.25rem", md: "3rem" }, color: "text.primary", mb: 2 }}
           >
             AI Features
           </Typography>
-          <Typography
-            sx={{
-              fontSize: "1.1rem",
-              color: "#7a6f63",
-              fontFamily: font,
-              lineHeight: 1.7,
-            }}
-          >
+          <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
             Made to accelerate your learning.
           </Typography>
         </Box>
@@ -368,26 +268,12 @@ export const About: React.FC = () => {
               }}
             >
               <Typography
-                sx={{
-                  fontSize: "1.4rem",
-                  fontWeight: 700,
-                  color: "#1a1714",
-                  fontFamily: font,
-                  lineHeight: 1.25,
-                }}
+                variant="h5"
+                sx={{ fontSize: "1.4rem", color: "text.primary", lineHeight: 1.25 }}
               >
                 {feat.title}
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: "0.95rem",
-                  color: "#5a4f45",
-                  fontFamily: font,
-                  lineHeight: 1.7,
-                }}
-              >
-                {feat.body}
-              </Typography>
+              <Typography variant="body2">{feat.body}</Typography>
               <Box
                 sx={{
                   flexGrow: 1,
@@ -403,11 +289,9 @@ export const About: React.FC = () => {
           ))}
         </Box>
       </Box>
-
-      {/* ── Footer strip ── */}
       <Box
         sx={{
-          backgroundColor: "#1c1c1c",
+          backgroundColor: "primary.main",
           py: 5,
           px: { xs: 4, md: 8 },
           display: "flex",
@@ -418,17 +302,13 @@ export const About: React.FC = () => {
         }}
       >
         <Typography
-          sx={{
-            color: "#e8ddd0",
-            fontFamily: font,
-            fontWeight: 700,
-            fontSize: "1.1rem",
-          }}
+          sx={{ color: "primary.contrastText", fontWeight: 700, fontSize: "1.1rem" }}
         >
           STOCK-AI
         </Typography>
         <Typography
-          sx={{ color: "#7a6f63", fontFamily: font, fontSize: "0.875rem" }}
+          variant="body1"
+          sx={{ color: "secondary.main", fontSize: "0.875rem" }}
         >
           Iowa State University · COMS 402 Senior Design
         </Typography>

@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { createChart, LineSeries, ColorType } from 'lightweight-charts';
 import { Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
-interface StockChartProps {
+type StockChartProps = {
   ticker: string;
   historyData: any[];
 }
@@ -11,6 +12,7 @@ const StockChart: React.FC<StockChartProps> = ({ ticker, historyData }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
   const seriesRef = useRef<any>(null);
+  const theme = useTheme();
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -18,18 +20,18 @@ const StockChart: React.FC<StockChartProps> = ({ ticker, historyData }) => {
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#333',
+        textColor: theme.palette.text.secondary,
       },
       width: chartContainerRef.current.clientWidth,
       height: chartContainerRef.current.clientHeight || 450,
       grid: {
-        vertLines: { color: '#f0f2f5' },
-        horzLines: { color: '#f0f2f5' },
+        vertLines: { color: theme.palette.divider },
+        horzLines: { color: theme.palette.divider },
       },
     });
 
     const lineSeries = chart.addSeries(LineSeries, {
-      color: '#0288d1',
+      color: theme.palette.primary.main,
       lineWidth: 2,
     });
 
@@ -48,7 +50,7 @@ const StockChart: React.FC<StockChartProps> = ({ ticker, historyData }) => {
       resizeObserver.disconnect();
       chart.remove();
     };
-  }, [ticker]);
+  }, [ticker, theme]);
 
   useEffect(() => {
     if (seriesRef.current && historyData.length > 0) {
@@ -58,14 +60,14 @@ const StockChart: React.FC<StockChartProps> = ({ ticker, historyData }) => {
   }, [historyData]);
 
   return (
-    <Box 
-      ref={chartContainerRef} 
-      sx={{ 
-        width: '100%', 
-        height: '100%', 
-        overflow: 'hidden', 
-        '& .tv-lightweight-charts-logo': { display: 'none !important' }
-      }} 
+    <Box
+      ref={chartContainerRef}
+      sx={{
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        '& .tv-lightweight-charts-logo': { display: 'none !important' },
+      }}
     />
   );
 };

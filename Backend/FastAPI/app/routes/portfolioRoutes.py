@@ -8,9 +8,7 @@ from app.security import user_from_jwt
 from app.schema import Portfolio, Position, Ticker, User
 from app.database import get_db
 
-
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
-
 
 @router.post(
     "/create",
