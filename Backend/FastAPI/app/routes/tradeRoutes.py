@@ -162,3 +162,51 @@ def newTrade(
         quantity=position.quantity if position else Decimal("0"),
         realized_pnl=realized_pnl,
     )
+
+
+@router.get(
+    "/{portfolio_id}/history",
+    response_model=list[tradeModels.TradeInfo],
+    summary="Returns list of trades performed for given portfolio",
+    description="Returns all trades belonging to a portfolio. Requires ownership of the portfolio."
+)
+def get_tradeHistory(
+    portfolio_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(user_from_jwt)
+):
+    # Verify existence & ownership of portfolio
+    portfolio = (
+        db.query(Portfolio)
+        .filter(Portfolio.id == portfolio_id)
+        .first()
+    )
+    
+    if not portfolio:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+    
+    if portfolio.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Fetch all trades associated with protfolio
+    trades = (
+        db.query(Trade)
+        .filter(Trade.portfolio_id == portfolio_id)
+        .order_by(Trade.executed_at.desc())
+        .all()
+    )
+    
+    # Convert returned Trade objects into more convenient data
+    response = []
+    for t in trades:
+        response.append(
+            tradeModels.TradeInfo(
+                ticker=t.ticker.symbol,
+                quantity=t.quantity,
+                price=t.price,
+                type=t.trade_type,
+                executed_at=t.executed_at
+            )
+        )
+
+    return response
