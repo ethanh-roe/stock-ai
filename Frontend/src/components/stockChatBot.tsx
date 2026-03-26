@@ -34,7 +34,6 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Reset conversation when ticker changes
   useEffect(() => {
     setMessages([]);
     setInput("");

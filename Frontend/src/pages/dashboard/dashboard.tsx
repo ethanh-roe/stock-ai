@@ -7,6 +7,7 @@ import StockOrder from "../../components/stockOrder";
 import StockProfile from "../../components/stockProfile";
 import StockSearchBar from "../../components/stockSearchBar";
 import StockChartContainer from "../../components/stockChartContainer";
+import StockAiAnalytics from "../../components/stockAiAnalytics";
 
 const StockDashboard: React.FC = () => {
   const [ticker, setTicker] = useState<string>("");
@@ -25,6 +26,10 @@ const StockDashboard: React.FC = () => {
               <StockProfile ticker={ticker} />
               <StockOrder ticker={ticker} livePrice={livePrice} />
             </Box>
+          </Grid>
+
+          <Grid size={12}>
+            <StockAiAnalytics ticker={ticker} />
           </Grid>
 
           <Grid size={12}>

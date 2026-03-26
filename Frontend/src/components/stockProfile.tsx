@@ -2,7 +2,6 @@ import { Paper, Box, CircularProgress, Avatar, Typography, Divider, Button } fro
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import StockAiAnalytics from "./stockAiAnalytics";
 import type { StockProfileModal } from "../types/stockProfile";
 
 const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
@@ -89,7 +88,6 @@ const StockProfile = ({ ticker }: StockProfileProps) => {
           </Box>
 
           <Divider sx={{ mb: 2 }} />
-          <StockAiAnalytics ticker={ticker} />
 
           <Button
             fullWidth variant="outlined" size="medium"
