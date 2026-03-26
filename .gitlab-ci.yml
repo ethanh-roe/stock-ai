@@ -7,11 +7,10 @@ fastapi-build:
   tags:
     - main_backend
   script:
-    - cd Backend
-    - cd FastAPI        
-    - sudo systemctl stop stock-ai-backend.service
-    - sudo systemctl disable stock-ai-backend.service
-    - sudo rm /etc/systemd/system/stock-ai-backend.service
+    - cd Backend/FastAPI
+    - sudo systemctl stop stock-ai-backend.service || true
+    - sudo systemctl disable stock-ai-backend.service || true
+    - sudo rm /etc/systemd/system/stock-ai-backend.service || true
     - sudo systemctl daemon-reload
     - sudo podman rm -f stock-ai-backend || true
     - sudo podman rmi myfastapi || true
@@ -31,14 +30,8 @@ fastapi-build:
 react-build:            
   stage: reactbuild
   tags:
-    # - main_frontend # it should run on this, but config stuff that I don't want to deal with make it not work currently.
     - main_backend
   script:
-    # - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-    # - source ~/.bashrc
-    # - nvm install 20
-    # - nvm use 20
-    # - nvm alias default 20
     - cd Frontend
     - npm install
     - npm run build
