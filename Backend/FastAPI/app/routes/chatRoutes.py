@@ -90,7 +90,7 @@ def send_message(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    user_msg = Message(conversation_id=msg.conversation_id, role="user", content=msg.content)
+    user_msg = Message(conversation_id=msg.conversation_id, role=MessageType.USER, content=msg.content)
     try:
         db.add(user_msg)
         db.commit()
@@ -111,7 +111,7 @@ def send_message(
     conversation.last_response_id = new_response_id
     db.commit()
 
-    assistant_msg = Message(conversation_id=msg.conversation_id, role="assistant", content=reply_text)
+    assistant_msg = Message(conversation_id=msg.conversation_id, role=MessageType.ASSISTANT, content=reply_text)
     try:
         db.add(assistant_msg)
         db.commit()

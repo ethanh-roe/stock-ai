@@ -24,8 +24,8 @@ class TradeType(str, enum.Enum):
 
 
 class MessageType(str, enum.Enum):
-    USER = "user"
-    ASSISTANT = "assistant"
+    USER = "USER"
+    ASSISTANT = "ASSISTANT"
 
 
 # -------------------------
