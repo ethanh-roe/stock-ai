@@ -7,7 +7,7 @@ from app.schema import Conversation, Message
 from app.database import get_db
 from app.agents.chatBot import get_ai_reply
 
-router = APIRouter(prefix="/chat", tags=["chat messages"])
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 @router.post(
     "/conversation/new",
