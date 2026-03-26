@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter
 from app.security import user_from_jwt
-from app.schema import Conversation, Message
+from app.schema import Conversation, Message, MessageType
 from app.database import get_db
 from app.agents.chatBot import get_ai_reply
 
