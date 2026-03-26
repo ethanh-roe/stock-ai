@@ -32,28 +32,33 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Reset conversation when ticker changes
   useEffect(() => {
     setMessages([]);
     setInput("");
+    setConversationId(null);
   }, [ticker]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const systemPrompt = ticker
-    ? `You are a knowledgeable stock market analyst and financial educator. The user is currently viewing ${ticker}.
-Help them understand this company — its business model, financials, competitive position, risks, and growth prospects.
-Be concise, insightful, and educational. Use plain language. Avoid giving direct investment advice like "you should buy/sell".
-Format responses clearly with short paragraphs. Keep answers under 200 words unless the question demands more depth.`
-    : `You are a helpful stock market educator. Help users learn about stocks, investing concepts, and market dynamics. Keep answers concise and educational.`;
+  const getOrCreateConversation = async (): Promise<number> => {
+    if (conversationId !== null) return conversationId;
+
+    const res = await axios.post(`${BASE_URL}/chat/conversation/new`);
+    const newId: number = res.data.id;
+    setConversationId(newId);
+    return newId;
+  };
 
   const sendMessage = async (text?: string) => {
     const messageText = (text ?? input).trim();
-    if (!messageText || isLoading) return;
+    if (!messageText || isLoading || !ticker) return;
 
     const userMessage: ChatMessage = {
       role: "user",
@@ -66,20 +71,16 @@ Format responses clearly with short paragraphs. Keep answers under 200 words unl
     setIsLoading(true);
 
     try {
-      const conversationHistory = [...messages, userMessage].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+      const convId = await getOrCreateConversation();
 
-      const response = await axios.post(`${BASE_URL}/ai/chat`, {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: conversationHistory,
+      const response = await axios.post(`${BASE_URL}/chat/conversation/send`, {
+        conversation_id: convId,
+        ticker,
+        content: messageText,
       });
 
-      const assistantText =
-        response.data?.content?.[0]?.text ??
+      const assistantText: string =
+        response.data?.content ??
         "Sorry, I couldn't generate a response. Please try again.";
 
       setMessages((prev) => [
@@ -123,6 +124,7 @@ Format responses clearly with short paragraphs. Keep answers under 200 words unl
         overflow: "hidden",
       }}
     >
+      {/* Header */}
       <Box
         sx={{
           px: 2.5, py: 1.75,
@@ -147,6 +149,8 @@ Format responses clearly with short paragraphs. Keep answers under 200 words unl
           <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 600 }}>Online</Typography>
         </Box>
       </Box>
+
+      {/* Messages */}
       <Box sx={{ flexGrow: 1, overflowY: "auto", px: 2.5, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
         {isEmpty ? (
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 2.5 }}>
@@ -262,6 +266,8 @@ Format responses clearly with short paragraphs. Keep answers under 200 words unl
           </>
         )}
       </Box>
+
+      {/* Suggested questions (after first message) */}
       {!isEmpty && ticker && !isLoading && (
         <Box sx={{ px: 2.5, pt: 1, pb: 0.5, display: "flex", gap: 0.5, flexWrap: "wrap", borderTop: `1px solid ${theme.palette.divider}` }}>
           {SUGGESTED_QUESTIONS.slice(0, 3).map((q) => (
@@ -278,6 +284,8 @@ Format responses clearly with short paragraphs. Keep answers under 200 words unl
           ))}
         </Box>
       )}
+
+      {/* Input */}
       <Box
         sx={{
           px: 2, py: 1.5, borderTop: `1px solid ${theme.palette.divider}`,

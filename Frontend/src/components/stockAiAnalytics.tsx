@@ -1,7 +1,10 @@
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
+import axios from "axios";
 import { type StockAiAnalyticsModal } from "../types/stockAiAnalytics";
+
+const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
 
 type StockAiAnalyticsProps = {
   ticker: string;
@@ -14,7 +17,7 @@ const StockAiAnalytics = ({ ticker }: StockAiAnalyticsProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAiAnalytics(ticker);
+    if (ticker) fetchAiAnalytics(ticker);
   }, [ticker]);
 
   const fetchAiAnalytics = async (symbol: string) => {
@@ -22,11 +25,12 @@ const StockAiAnalytics = ({ ticker }: StockAiAnalyticsProps) => {
     setAiAnalytics(null);
     setError(null);
     try {
-      const response = await fetch(`/api/ai-analytics/${symbol}`);
-      if (!response.ok) throw new Error("Failed to fetch analytics");
-      const data: StockAiAnalyticsModal = await response.json();
-      setAiAnalytics(data);
-    } catch (err) {
+      const response = await axios.post(`${BASE_URL}/ai/analyze`, {
+        ticker: symbol,
+        prompt: `Analyze ${symbol} stock and provide a recommendation, confidence score, summary, momentum score, momentum label, and risk level.`,
+      });
+      setAiAnalytics(response.data);
+    } catch {
       setError("Analytics unavailable");
     } finally {
       setAiAnalyticsLoading(false);
