@@ -7,7 +7,7 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 import ReactMarkdown from "react-markdown";
-import api from "../services/apiService.ts";
+import api from "../../services/apiService.ts";
 
 const SUGGESTED_QUESTIONS = [
   "What does this company do?",
