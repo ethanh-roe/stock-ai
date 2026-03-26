@@ -3,7 +3,7 @@
 }
 
 /* ── Page layout ── */
-.register-page {
+.register {
   display: flex;
   height: 100vh;
   background-color: #faf8f5;
