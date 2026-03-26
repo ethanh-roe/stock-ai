@@ -9,7 +9,6 @@ import {
 import ReactMarkdown from "react-markdown";
 import api from "../../services/apiService.ts";
 
-
 const SUGGESTED_QUESTIONS = [
   "What does this company do?",
   "What are the key risks?",
