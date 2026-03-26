@@ -7,7 +7,7 @@ import { LoginLeft } from "../../components/auth/login/loginLeft";
 import { LoginForm  } from "../../components/auth/login/loginForm";
 import { AuthLayout } from "../../components/auth/common/authLayout";
 
-const Login: React.FC = () => {
+const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
