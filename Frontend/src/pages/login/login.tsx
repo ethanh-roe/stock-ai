@@ -40,7 +40,7 @@ const Login = () => {
 
   return (
     <AuthLayout
-      className="login-page"
+      className="login"
       left={<LoginLeft />}
       right={
         <LoginForm

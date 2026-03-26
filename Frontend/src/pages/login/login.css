@@ -3,14 +3,14 @@
 }
 
 /* ── Page layout ── */
-.login-page {
+.login {
     display: flex;
     min-height: 100vh;
     background-color: #faf8f5;
 }
 
 /* ── Left panel ── */
-.login-page-left {
+.login-left {
     flex: 1;
     background-color: #f0ebe1;
     display: flex;
@@ -28,7 +28,7 @@
 }
 
 /* ── Right panel ── */
-.login-page-right {
+.login-right {
     flex: 1;
     display: flex;
     align-items: center;
