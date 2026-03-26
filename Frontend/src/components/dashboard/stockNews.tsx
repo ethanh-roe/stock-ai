@@ -3,7 +3,7 @@ import { Paper, Box, Typography, CircularProgress, CardActionArea, Chip, Divider
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import type { NewsArticle } from "../types/stockNews";
+import type { NewsArticle } from "../../types/stockNews";
 
 const accent = "#4F6EF7";
 const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
