@@ -24,8 +24,8 @@ class TradeType(str, enum.Enum):
 
 
 class MessageType(str, enum.Enum):
-    PROMPT = "PROMPT"
-    RESPONSE = "RESPONSE"
+    USER = "user"
+    ASSISTANT = "assistant"
 
 
 # -------------------------
@@ -38,10 +38,7 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
-
-    # Simulated funding pool
     cash_balance = Column(Numeric(15, 2), nullable=False, default=0)
-
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     portfolios: Mapped[List["Portfolio"]] = relationship(
@@ -57,27 +54,20 @@ class Portfolio(Base):
     __tablename__ = "portfolios"
 
     id: Mapped[int] = Column(BigInteger, primary_key=True)
-
     user_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-
     name = Column(String(100), nullable=False)
-
-    # Cash allocated to this portfolio
     cash_balance = Column(Numeric(15, 2), nullable=False, default=0)
-
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="portfolios")
-
     positions: Mapped[List["Position"]] = relationship(
         back_populates="portfolio",
         cascade="all, delete-orphan",
     )
-
     trades: Mapped[List["Trade"]] = relationship(
         back_populates="portfolio",
         cascade="all, delete-orphan",
@@ -95,7 +85,6 @@ class Ticker(Base):
     name = Column(String(100))
 
     trades: Mapped[List["Trade"]] = relationship(back_populates="ticker")
-
     positions: Mapped[List["Position"]] = relationship(back_populates="ticker")
 
 
@@ -106,29 +95,21 @@ class Position(Base):
     __tablename__ = "positions"
 
     id: Mapped[int] = Column(BigInteger, primary_key=True)
-
     portfolio_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("portfolios.id", ondelete="CASCADE"),
         nullable=False,
     )
-
     ticker_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("tickers.id", ondelete="CASCADE"),
         nullable=False,
     )
-
-    # Core financial data
     quantity = Column(Numeric(15, 6), nullable=False)
     avg_cost_basis = Column(Numeric(15, 4), nullable=False)
 
     __table_args__ = (
-        UniqueConstraint(
-            "portfolio_id",
-            "ticker_id",
-            name="uix_portfolio_ticker",
-        ),
+        UniqueConstraint("portfolio_id", "ticker_id", name="uix_portfolio_ticker"),
         Index("idx_positions_portfolio", "portfolio_id"),
         Index("idx_positions_ticker", "ticker_id"),
     )
@@ -144,27 +125,20 @@ class Trade(Base):
     __tablename__ = "trades"
 
     id: Mapped[int] = Column(BigInteger, primary_key=True)
-
     portfolio_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("portfolios.id", ondelete="CASCADE"),
         nullable=False,
     )
-
     ticker_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("tickers.id", ondelete="CASCADE"),
         nullable=False,
     )
-
     trade_type = Column(Enum(TradeType), nullable=False)
-
     quantity = Column(Numeric(15, 6), nullable=False)
     price = Column(Numeric(15, 4), nullable=False)
-
-    # Optional but VERY useful
     realized_pnl = Column(Numeric(15, 4), nullable=True)
-
     executed_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     __table_args__ = (
@@ -177,35 +151,31 @@ class Trade(Base):
 
 
 # -------------------------
-# Conversations (group chat sessions)
+# Conversation
 # -------------------------
 class Conversation(Base):
     __tablename__ = "conversations"
 
     id: Mapped[int] = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
-
     title = Column(String(100), nullable=True)
-
+    last_response_id = Column(String(255), nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
-    updated_at = Column(TIMESTAMP, nullable=False, onupdate=func.now())
+    updated_at = Column(TIMESTAMP, nullable=True, onupdate=func.now())
 
     messages: Mapped[List["Message"]] = relationship(back_populates="conversation")
 
 
 # -------------------------
-# Messages (individual chat messages)
+# Message
 # -------------------------
 class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[int] = Column(BigInteger, primary_key=True)
-
     conversation_id = Column(BigInteger, ForeignKey("conversations.id"), nullable=False)
-
     role = Column(Enum(MessageType), nullable=False)
     content = Column(Text, nullable=False)
-
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
