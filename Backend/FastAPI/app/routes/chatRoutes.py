@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, APIRouter
 from app.security import user_from_jwt
 from app.schema import Conversation, Message
 from app.database import get_db
-from app.chat_agent import get_ai_reply
+from app.agents.chatBot import get_ai_reply
 
 router = APIRouter(prefix="/chat", tags=["chat messages"])
 
