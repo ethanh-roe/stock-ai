@@ -6,9 +6,7 @@ import {
   AutoAwesome as SparkleIcon,
   Person as PersonIcon,
 } from "@mui/icons-material";
-import axios from "axios";
-
-const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
+import api from "../services/apiService.ts";
 
 const SUGGESTED_QUESTIONS = [
   "What does this company do?",
@@ -50,7 +48,7 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
   const getOrCreateConversation = async (): Promise<number> => {
     if (conversationId !== null) return conversationId;
 
-    const res = await axios.post(`${BASE_URL}/chat/conversation/new`);
+    const res = await api.post(`/chat/conversation/new`);
     const newId: number = res.data.id;
     setConversationId(newId);
     return newId;
@@ -73,7 +71,7 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
     try {
       const convId = await getOrCreateConversation();
 
-      const response = await axios.post(`${BASE_URL}/chat/conversation/send`, {
+      const response = await api.post(`/chat/conversation/send`, {
         conversation_id: convId,
         ticker,
         content: messageText,

@@ -1,10 +1,8 @@
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
-import axios from "axios";
+import api from "../services/apiService.ts";
 import { type StockAiAnalyticsModal } from "../types/stockAiAnalytics";
-
-const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
 
 type StockAiAnalyticsProps = {
   ticker: string;
@@ -25,7 +23,7 @@ const StockAiAnalytics = ({ ticker }: StockAiAnalyticsProps) => {
     setAiAnalytics(null);
     setError(null);
     try {
-      const response = await axios.post(`${BASE_URL}/ai/analyze`, {
+      const response = await api.post(`/ai/analyze`, {
         ticker: symbol,
         prompt: `Analyze ${symbol} stock and provide a recommendation, confidence score, summary, momentum score, momentum label, and risk level.`,
       });

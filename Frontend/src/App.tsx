@@ -11,7 +11,6 @@ import ProtectedRoute from "./components/protectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
 const router = createBrowserRouter([
-  // Public
   {
     path: "/login",
     element: <Login />,
@@ -20,8 +19,6 @@ const router = createBrowserRouter([
     path: "/register",
     element: <Register />,
   },
-
-  // Protected
   {
     element: <ProtectedRoute />,
     children: [
