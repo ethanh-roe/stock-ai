@@ -10,7 +10,7 @@
 }
 
 /* ── Left panel ── */
-.login-left {
+.login-page-left {
     flex: 1;
     background-color: #f0ebe1;
     display: flex;
@@ -28,7 +28,7 @@
 }
 
 /* ── Right panel ── */
-.login-right {
+.login-page-right {
     flex: 1;
     display: flex;
     align-items: center;

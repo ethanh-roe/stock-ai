@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, IconButton, InputAdornment, TextField } from "@mui/material";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import "./login.css";
 import type { LoginRequest } from "../../types/auth";
 import { useAuth } from "../../hooks/useAuth";
+import { LoginLeft } from "../../components/auth/login/loginLeft";
+import { LoginForm  } from "../../components/auth/login/loginForm";
+import { AuthLayout } from "../../components/auth/common/authLayout";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ const Login: React.FC = () => {
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,112 +38,23 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleLogin();
-  };
-
   return (
-    <div className="login-page">
-      {/* Left panel */}
-      <div className="login-left">
-        <img
-          src="/money_toushi_kabu_shortterm.png"
-          alt="Stock trader illustration"
-          className="login-illustration"
+    <AuthLayout
+      className="login-page"
+      left={<LoginLeft />}
+      right={
+        <LoginForm
+          data={loginData}
+          setData={setLoginData}
+          loading={loading}
+          error={error}
+          setError={setError}
+          handleLogin={handleLogin}
+          navigate={navigate}
         />
-      </div>
-
-      {/* Right panel — form */}
-      <div className="login-right">
-        <div className="login-form-wrapper">
-          <h1 className="login-title">Log in to STOCK-AI</h1>
-
-          <TextField
-            fullWidth
-            required
-            label="Username or Email"
-            variant="outlined"
-            value={loginData.username}
-            onChange={(e) =>
-              setLoginData((prev) => ({ ...prev, username: e.target.value }))
-            }
-            onKeyDown={handleKeyDown}
-            className="login-field"
-            sx={fieldSx}
-          />
-
-          <TextField
-            fullWidth
-            required
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            variant="outlined"
-            value={loginData.password}
-            onChange={(e) =>
-              setLoginData((prev) => ({ ...prev, password: e.target.value }))
-            }
-            onKeyDown={handleKeyDown}
-            className="login-field"
-            sx={fieldSx}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword((p) => !p)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          {error && (
-            <Alert
-              severity="error"
-              onClose={() => setError(null)}
-              sx={{ borderRadius: "12px" }}
-            >
-              {error}
-            </Alert>
-          )}
-
-          <div className="login-button-row">
-            <button
-              className="btn-primary"
-              onClick={handleLogin}
-              disabled={loading}
-            >
-              {loading ? "Logging in…" : "Log In"}
-            </button>
-          </div>
-
-          <p className="login-footer">
-            Don't have an account?{" "}
-            <span className="login-link" onClick={() => navigate("/register")}>
-              Create one
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
+      }
+    />
   );
-};
-
-const fieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "10px",
-    backgroundColor: "#f5f1ea",
-    fontFamily: "'Inter', sans-serif",
-    "& fieldset": { borderColor: "#d4c9b8" },
-    "&:hover fieldset": { borderColor: "#a89880" },
-    "&.Mui-focused fieldset": { borderColor: "#1c1c1c" },
-  },
-  "& .MuiInputLabel-root": { fontFamily: "'Inter', sans-serif" },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#1c1c1c" },
 };
 
 export default Login;
