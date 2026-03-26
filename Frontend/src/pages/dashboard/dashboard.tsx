@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import Grid from "@mui/material/Grid";
 import { Box, Container } from "@mui/material";
-import StockChatbot from "../../components/stockChatBot";
-import StockNews from "../../components/stockNews";
-import StockOrder from "../../components/stockOrder";
-import StockProfile from "../../components/stockProfile";
-import StockSearchBar from "../../components/stockSearchBar";
-import StockChartContainer from "../../components/stockChartContainer";
-import StockAiAnalytics from "../../components/stockAiAnalytics";
+import StockChatbot from "../../components/dashboard/stockChatBot";
+import StockNews from "../../components/dashboard/stockNews";
+import StockOrder from "../../components/dashboard/stockOrder";
+import StockProfile from "../../components/dashboard/stockProfile";
+import StockSearchBar from "../../components/dashboard/stockSearchBar";
+import StockChartContainer from "../../components/dashboard/stockChartContainer";
+import StockAiAnalytics from "../../components/dashboard/stockAiAnalytics";
+
 
 const StockDashboard: React.FC = () => {
   const [ticker, setTicker] = useState<string>("");

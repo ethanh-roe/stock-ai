@@ -1,8 +1,9 @@
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
-import api from "../services/apiService.ts";
-import { type StockAiAnalyticsModal } from "../types/stockAiAnalytics";
+import api from "../../services/apiService.ts";
+import { type StockAiAnalyticsModal } from "../../types/stockAiAnalytics";
+
 
 type StockAiAnalyticsProps = {
   ticker: string;
