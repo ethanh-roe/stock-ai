@@ -19,7 +19,7 @@ app.include_router(wsRoutes.router)
 app.include_router(tradeRoutes.router)
 app.include_router(chatRoutes.router)
 app.include_router(analysisRoutes.router)
-create_tables()  # Create tables, if needed
+create_tables() 
 
 origins = [
     "http://localhost:80",
