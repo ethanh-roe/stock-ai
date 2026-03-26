@@ -6,6 +6,7 @@ import {
   AutoAwesome as SparkleIcon,
   Person as PersonIcon,
 } from "@mui/icons-material";
+import ReactMarkdown from "react-markdown";
 import api from "../services/apiService.ts";
 
 const SUGGESTED_QUESTIONS = [
@@ -46,7 +47,6 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
 
   const getOrCreateConversation = async (): Promise<number> => {
     if (conversationId !== null) return conversationId;
-
     const res = await api.post(`/chat/conversation/new`);
     const newId: number = res.data.id;
     setConversationId(newId);
@@ -146,8 +146,6 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
           <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 600 }}>Online</Typography>
         </Box>
       </Box>
-
-      {/* Messages */}
       <Box sx={{ flexGrow: 1, overflowY: "auto", px: 2.5, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
         {isEmpty ? (
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 2.5 }}>
@@ -218,16 +216,75 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
                         : { bgcolor: "background.default", color: "text.primary", border: `1px solid ${theme.palette.divider}` }),
                     }}
                   >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        lineHeight: 1.6, fontSize: "0.82rem",
-                        fontWeight: msg.role === "user" ? 600 : 400,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {msg.content}
-                    </Typography>
+                    {msg.role === "user" ? (
+                      <Typography variant="body2" sx={{ lineHeight: 1.6, fontSize: "0.82rem", fontWeight: 600 }}>
+                        {msg.content}
+                      </Typography>
+                    ) : (
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <Typography variant="body2" sx={{ lineHeight: 1.6, fontSize: "0.82rem", mb: 0.75, "&:last-child": { mb: 0 } }}>
+                              {children}
+                            </Typography>
+                          ),
+                          ul: ({ children }) => (
+                            <Box component="ul" sx={{ pl: 2, my: 0.5 }}>
+                              {children}
+                            </Box>
+                          ),
+                          ol: ({ children }) => (
+                            <Box component="ol" sx={{ pl: 2, my: 0.5 }}>
+                              {children}
+                            </Box>
+                          ),
+                          li: ({ children }) => (
+                            <Typography component="li" variant="body2" sx={{ lineHeight: 1.6, fontSize: "0.82rem", mb: 0.25 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          strong: ({ children }) => (
+                            <Box component="span" sx={{ fontWeight: 700 }}>
+                              {children}
+                            </Box>
+                          ),
+                          em: ({ children }) => (
+                            <Box component="span" sx={{ fontStyle: "italic" }}>
+                              {children}
+                            </Box>
+                          ),
+                          h1: ({ children }) => (
+                            <Typography variant="body2" sx={{ fontWeight: 800, fontSize: "0.9rem", mb: 0.5 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          h2: ({ children }) => (
+                            <Typography variant="body2" sx={{ fontWeight: 800, fontSize: "0.87rem", mb: 0.5 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          h3: ({ children }) => (
+                            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: "0.84rem", mb: 0.5 }}>
+                              {children}
+                            </Typography>
+                          ),
+                          code: ({ children }) => (
+                            <Box
+                              component="code"
+                              sx={{
+                                bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                px: 0.5, py: 0.1, borderRadius: 0.5,
+                                fontSize: "0.78rem", fontFamily: "monospace",
+                              }}
+                            >
+                              {children}
+                            </Box>
+                          ),
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
                   </Box>
                   <Typography variant="caption" sx={{ color: "text.disabled", fontSize: "0.65rem", px: 0.5 }}>
                     {formatTime(msg.timestamp)}
