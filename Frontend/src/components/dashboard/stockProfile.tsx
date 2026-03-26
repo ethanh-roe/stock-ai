@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import type { StockProfileModal } from "../../types/stockProfile";
 
+
 const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
 
 const accent = "#4F6EF7";
