@@ -2,8 +2,13 @@ import { Paper, Box, CircularProgress, Avatar, Typography, Divider, Button } fro
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import axios from "axios";
+<<<<<<< HEAD
 import type { StockProfileModal } from "../../types/stockProfile";
 
+=======
+import StockAiAnalytics from "./stockAiAnalytics";
+import type { StockProfileModal } from "../../types/stockProfile";
+>>>>>>> 3121033 (Updated import paths)
 
 const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
 
