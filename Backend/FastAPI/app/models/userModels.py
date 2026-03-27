@@ -16,7 +16,6 @@ class UserInfo(BaseModel):
     username: str
     created_at: datetime
     cash_balance: Decimal
-    
 
 
 # Login Request model

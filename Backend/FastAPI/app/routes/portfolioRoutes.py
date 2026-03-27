@@ -7,8 +7,11 @@ from fastapi import Depends, HTTPException, APIRouter, status
 from app.security import user_from_jwt
 from app.schema import Portfolio, Position, Ticker, User
 from app.database import get_db
+import yfinance as yf
+from decimal import Decimal
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
+
 
 @router.post(
     "/create",
@@ -121,18 +124,52 @@ def get_positions(
         .all()
     )
 
+    # Extract tickers & values
+    ticker_symbols = [ticker.symbol for _, ticker in results]
+
+    price_map = {}
+
+    if ticker_symbols:
+        ticker_str = " ".join(ticker_symbols)
+        yf_tickers = yf.Tickers(ticker_str)
+
+        for symbol in ticker_symbols:
+            try:
+                price = yf_tickers.tickers[symbol].info["regularMarketPrice"]
+                price_map[symbol] = Decimal(str(price))
+            except Exception:
+                price_map[symbol] = None
+
     # -------------------------
     # 3. Format Response
     # -------------------------
-    return [
-        portfolioModels.PositionInfo(
-            portfolio_id=portfolio_id,
-            ticker=ticker.symbol,
-            quantity=position.quantity,
-            avg_cost_basis=position.avg_cost_basis,
+    response = []
+
+    for position, ticker in results:
+        current_price = price_map.get(ticker.symbol)
+
+        total_value = None
+        unrealized_gain = None
+
+        if current_price is not None:
+            total_value = current_price * position.quantity
+            unrealized_gain = (
+                (current_price - position.avg_cost_basis) * position.quantity
+            )
+
+        response.append(
+            portfolioModels.PositionInfo(
+                portfolio_id=portfolio_id,
+                ticker=ticker.symbol,
+                quantity=position.quantity,
+                avg_cost_basis=position.avg_cost_basis,
+                current_price=current_price,
+                total_value=total_value,
+                unrealized_gain=unrealized_gain,
+            )
         )
-        for position, ticker in results
-    ]
+
+    return response
 
 
 @router.put(
