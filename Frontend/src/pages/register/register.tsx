@@ -18,7 +18,7 @@ const Register = () => {
     username: "",
     email: "",
     password: "",
-    initial_balance: 1000,
+    initial_balance: 10000,
   });
 
   // const [showPassword, setShowPassword] = useState(false);
