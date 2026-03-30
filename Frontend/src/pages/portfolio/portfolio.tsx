@@ -39,21 +39,24 @@ const Portfolio: React.FC = () => {
 
     return (
         <Box sx={{ backgroundColor: "#faf8f5", minHeight: "100vh" }}>
-          
-          <CreatePortfolioForm onCreate={createPortfolio} error={error} setError={setError} />
-          
-          <PortfolioList
-            portfolios={portfolios}
-            setPortfolios={setPortfolios}
-            positions={positions}
-            expanded={expanded}
-            setExpanded={setExpanded}
-            loadPositions={loadPositions}
-            loading={loading}
-            user={user}
-            setUser={setUser}
-            setError={setError}
-          />
+            <CreatePortfolioForm 
+                onCreate={createPortfolio} 
+                error={error} 
+                setError={setError} 
+            />
+
+            <PortfolioList
+                portfolios={portfolios}
+                setPortfolios={setPortfolios}
+                positions={positions}
+                expanded={expanded}
+                setExpanded={setExpanded}
+                loadPositions={loadPositions}
+                loading={loading}
+                user={user}
+                setUser={setUser}
+                setError={setError}
+            />
         </Box>
     );
 };
