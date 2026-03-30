@@ -15,7 +15,7 @@ const PortfolioPositions: React.FC<Props> = ({ positions }) => {
                 <ListItem key={pos.ticker} disableGutters sx={{ py: 0.5 }}>
                     <ListItemText
                         primary={<Typography sx={{ fontWeight: 700 }}>{pos.ticker}</Typography>}
-                        secondary={<Typography sx={{ fontSize: "0.8rem" }}>Qty: {pos.quantity} -- Avg Cost: ${pos.avg_cost_basis}</Typography>}
+                        secondary={<Typography sx={{ fontSize: "0.8rem" }}>Qty: {Number(pos.quantity).toFixed(2)} | Avg Cost: ${Number(pos.avg_cost_basis).toFixed(2)}</Typography>}
                         />
                 </ListItem>
             ))}

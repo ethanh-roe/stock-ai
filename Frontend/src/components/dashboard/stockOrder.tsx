@@ -1,8 +1,9 @@
 import { Paper, Typography, Divider, Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useState } from "react";
-import type { PortfolioInfo } from "../../types/portfolio";
+import { useEffect, useState } from "react";
+import type { PortfolioInfo, PositionInfo } from "../../types/portfolio";
 import tradeService from "../../services/tradeService";
+import portfolioService from "../../services/portfolioService";
 
 const accent = "#4F6EF7";
 
@@ -19,6 +20,29 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
   const [isBuyMode, setIsBuyMode] = useState<boolean>(true);
   const [orderSize, setOrderSize] = useState<string>("");
   const [selectedPortfolio, setSelectedPortfolio] = useState<number | null>(null);
+  const [positions, setPositions] = useState<PositionInfo[]>([]);
+
+  useEffect(() => {
+    if (!selectedPortfolio) return;
+    
+    const loadPositions = async () => {
+      try {
+        const data = await portfolioService.getPositions(selectedPortfolio);
+        setPositions(data);
+      } catch (err) {
+        console.error("Failed to load positions", err);
+        setPositions([]);
+      }
+    };
+  
+    loadPositions();
+  }, [selectedPortfolio]);
+
+  const ownedPosition = positions.find(
+    (p) => p.ticker === ticker
+  );
+
+  const ownedShares = ownedPosition?.quantity ?? 0;
 
   const handleDialogOpen = (isBuying: boolean) => {
     setIsBuyMode(isBuying);
@@ -37,14 +61,19 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
         price: Number(livePrice)
       });
 
-      await tradeService.newTrade({
-        portfolio_id: selectedPortfolio,
-        type: isBuyMode ? "BUY" : "SELL",
-        ticker,
-        asset_name: assetName,
-        quantity: Number(orderSize),
-        price: livePrice ?? 0
-      });
+      try{
+        await tradeService.newTrade({
+          portfolio_id: selectedPortfolio,
+          type: isBuyMode ? "BUY" : "SELL",
+          ticker,
+          asset_name: assetName,
+          quantity: Number(orderSize),
+          price: livePrice ?? 0
+        });
+      } catch (err: any) {
+        console.log("Trade error:", err.response?.data);
+      }
+      
       handleDialogClose();
   }
   console.log("livePrice:", livePrice);
@@ -72,7 +101,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
         <Divider sx={{ mb: 1.75 }} />
 
         <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25, mb: 2 }}>
-          {[{ label: "SHARES", value: "—" }, { label: "VALUE", value: "—" }].map(({ label, value }) => (
+          {[{ label: "SHARES", value: ownedShares }, { label: "VALUE", value: livePrice }].map(({ label, value }) => (
             <Box key={label} sx={{ p: 1.25, bgcolor: "background.default", borderRadius: 1.5 }}>
               <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 700, display: "block", mb: 0.25, letterSpacing: 0.5 }}>
                 {label}
