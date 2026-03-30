@@ -1,4 +1,4 @@
-import { Box, TextField } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import PortfolioService from "../../services/portfolioService";
 import { useState } from "react";
 import type { PortfolioInfo } from "../../types/portfolio";
@@ -72,8 +72,8 @@ const TransferControls: React.FC<Props> = ({
     return (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }} onClick={e => e.stopPropagation()}>
             <TextField type="number" size="small" value={amount} onChange={e => setAmount(+e.target.value)} />
-            <button style={{ ...btnBase, backgroundColor: "#2d6a4f", color: "#fff" }} onClick={cashIn}>Add</button>
-            <button style={{ ...btnBase, backgroundColor: "#9b2335", color: "#fff" }} onClick={cashOut}>Withdraw</button>
+            <Button style={{ ...btnBase, backgroundColor: "#2d6a4f", color: "#fff" }} onClick={cashIn}>Add</Button>
+            <Button style={{ ...btnBase, backgroundColor: "#9b2335", color: "#fff" }} onClick={cashOut}>Withdraw</Button>
         </Box>
     );
 };
