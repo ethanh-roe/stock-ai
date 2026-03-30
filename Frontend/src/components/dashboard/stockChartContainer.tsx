@@ -9,9 +9,10 @@ const BASE_URL = "http://coms-4020-029.class.las.iastate.edu:8080";
 
 type StockChartContainerProps = {
   ticker: string;
+  setLivePrice: (price: number) => void;
 };
 
-const StockChartContainer = ({ ticker }: StockChartContainerProps) => {
+const StockChartContainer = ({ ticker, setLivePrice }: StockChartContainerProps) => {
   const theme = useTheme();
   const [period, setPeriod] = useState<string>("1d");
   const [historyData, setHistoryData] = useState<any[]>([]);
@@ -29,11 +30,21 @@ const StockChartContainer = ({ ticker }: StockChartContainerProps) => {
     if (!ticker) return;
     fetchHistory(ticker, period);
   }, [ticker, period]);
-
+  
   const fetchHistory = async (symbol: string, timeRange: string) => {
     try {
       const res = await axios.get(`${BASE_URL}/data/${symbol}/history?period=${timeRange}`);
-      setHistoryData(res.data);
+      const data = res.data;
+      setHistoryData(data);
+
+      if (data.length > 0) {
+        const last = data[data.length - 1];
+        console.log("Latest candle:", last);
+
+        if (last.value !== undefined) {
+          setLivePrice(last.value);
+        }
+      }
     } catch (err) {
       console.error("History fetch failed", err);
     }

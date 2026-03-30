@@ -10,9 +10,10 @@ const accent = "#4F6EF7";
 
 type StockProfileProps = {
   ticker: string;
+  setAssetName: (name: string) => void;
 };
 
-const StockProfile = ({ ticker }: StockProfileProps) => {
+const StockProfile = ({ ticker, setAssetName }: StockProfileProps) => {
   const theme = useTheme();
   const [data, setData] = useState<StockProfileModal | null>(null);
   const [_error, setError] = useState<string | null>(null);
@@ -23,6 +24,7 @@ const StockProfile = ({ ticker }: StockProfileProps) => {
     try {
       const res = await axios.get<StockProfileModal>(`${BASE_URL}/data/${symbol}/profile`);
       setData(res.data);
+      setAssetName(res.data.name);
       setError(null);
     } catch {
       setError("Ticker not found");

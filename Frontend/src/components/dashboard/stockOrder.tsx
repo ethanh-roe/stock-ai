@@ -1,19 +1,24 @@
-import { Paper, Typography, Divider, Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import { Paper, Typography, Divider, Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
+import type { PortfolioInfo } from "../../types/portfolio";
+import tradeService from "../../services/tradeService";
 
 const accent = "#4F6EF7";
 
 type StockOrderProps = {
   ticker: string;
+  assetName: string;
   livePrice?: number;
+  portfolios: PortfolioInfo[];
 };
 
-const StockOrder = ({ ticker, livePrice }: StockOrderProps) => {
+const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps) => {
   const theme = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isBuyMode, setIsBuyMode] = useState<boolean>(true);
   const [orderSize, setOrderSize] = useState<string>("");
+  const [selectedPortfolio, setSelectedPortfolio] = useState<number | null>(null);
 
   const handleDialogOpen = (isBuying: boolean) => {
     setIsBuyMode(isBuying);
@@ -21,8 +26,29 @@ const StockOrder = ({ ticker, livePrice }: StockOrderProps) => {
     setIsDialogOpen(true);
   };
 
+  const handleConfirm = async () => {
+    if (!selectedPortfolio) return;
+      console.log("Sending trade:", {
+        portfolio_id: selectedPortfolio,
+        type: isBuyMode ? "BUY" : "SELL",
+        ticker,
+        asset_name: assetName,
+        quantity: Number(orderSize),
+        price: Number(livePrice)
+      });
+
+      await tradeService.newTrade({
+        portfolio_id: selectedPortfolio,
+        type: isBuyMode ? "BUY" : "SELL",
+        ticker,
+        asset_name: assetName,
+        quantity: Number(orderSize),
+        price: livePrice ?? 0
+      });
+      handleDialogClose();
+  }
+  console.log("livePrice:", livePrice);
   const handleDialogClose = () => setIsDialogOpen(false);
-  const handleConfirm = () => setIsDialogOpen(false);
 
   const orderSizeNum = Number(orderSize);
   const validOrderSize =
@@ -104,6 +130,25 @@ const StockOrder = ({ ticker, livePrice }: StockOrderProps) => {
           <Typography variant="body2" sx={{ color: "text.secondary", mb: 1.5 }}>
             Current Price: <b>${Number(livePrice ?? 0).toFixed(2)}</b>
           </Typography>
+
+          {/* Portfolio Selector */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel id="portfolio-select-label">Portfolio</InputLabel>
+            <Select
+              labelId="portfolio-select-label"
+              value={selectedPortfolio ?? ""}
+              label="Portfolio"
+              onChange={(e) => setSelectedPortfolio(Number(e.target.value))}
+              sx={{ borderRadius: 2 }}
+            >
+              {portfolios.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
             autoFocus fullWidth label="Quantity"
             value={orderSize}
@@ -140,7 +185,7 @@ const StockOrder = ({ ticker, livePrice }: StockOrderProps) => {
           </Button>
           <Button
             variant="contained" onClick={handleConfirm}
-            disabled={!validOrderSize} disableElevation
+            disabled={!validOrderSize || !selectedPortfolio} disableElevation
             sx={{
               bgcolor: isBuyMode ? "#22c55e" : "#ef4444",
               fontWeight: 700, textTransform: "none", borderRadius: 2, px: 3,
