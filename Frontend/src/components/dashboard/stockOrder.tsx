@@ -1,4 +1,4 @@
-import { Paper, Typography, Divider, Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import { Paper, Typography, Divider, Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Tooltip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import type { PortfolioInfo, PositionInfo } from "../../types/portfolio";
@@ -23,27 +23,22 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
   const [selectedPortfolio, setSelectedPortfolio] = useState<number | null>(null);
   const [positions, setPositions] = useState<PositionInfo[]>([]);
 
+  const loadPositions = async (portfolioId: number) => {
+    try {
+      const data = await portfolioService.getPositions(portfolioId);
+      setPositions(data);
+    } catch (err) {
+      console.error("Failed to load positions", err);
+      setPositions([]);
+    }
+  };
+
   useEffect(() => {
     if (selectedPortfolioId) {
       setSelectedPortfolio(selectedPortfolioId);
+      loadPositions(selectedPortfolioId);
     }
   }, [selectedPortfolioId]);
-
-  useEffect(() => {
-    if (!selectedPortfolio) return;
-    
-    const loadPositions = async () => {
-      try {
-        const data = await portfolioService.getPositions(selectedPortfolio);
-        setPositions(data);
-      } catch (err) {
-        console.error("Failed to load positions", err);
-        setPositions([]);
-      }
-    };
-  
-    loadPositions();
-  }, [selectedPortfolio]);
 
   const ownedPosition = positions.find(
     (p) => p.ticker === ticker
@@ -82,6 +77,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
           quantity: Number(orderSize),
           price: livePrice ?? 0
         });
+        await loadPositions(selectedPortfolio);
       } catch (err: any) {
         console.log("Trade error:", err.response?.data);
       }
@@ -119,7 +115,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
         <Divider sx={{ mb: 1.75 }} />
 
         <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.25, mb: 2 }}>
-          {[{ label: "SHARES", value: ownedShares }, { label: "VALUE", value: livePrice }].map(({ label, value }) => (
+          {[{ label: "SHARES", value: Number(ownedShares) }, { label: "VALUE", value: livePrice }].map(({ label, value }) => (
             <Box key={label} sx={{ p: 1.25, bgcolor: "background.default", borderRadius: 1.5 }}>
               <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 700, display: "block", mb: 0.25, letterSpacing: 0.5 }}>
                 {label}
@@ -129,36 +125,43 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
           ))}
         </Box>
 
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="contained" fullWidth size="medium"
-            disabled={!ticker}
-            onClick={() => handleDialogOpen(true)}
-            disableElevation
-            sx={{
-              bgcolor: "#22c55e", fontWeight: 700, py: 1, borderRadius: 2,
-              textTransform: "none", fontSize: "0.875rem",
-              "&:hover": { bgcolor: "#16a34a" },
-              "&:disabled": { bgcolor: "#dcfce7", color: "rgba(0,0,0,0.3)" },
-            }}
-          >
-            Buy
-          </Button>
-          <Button
-            variant="contained" fullWidth size="medium"
-            disabled={!ticker}
-            onClick={() => handleDialogOpen(false)}
-            disableElevation
-            sx={{
-              bgcolor: "#ef4444", fontWeight: 700, py: 1, borderRadius: 2,
-              textTransform: "none", fontSize: "0.875rem",
-              "&:hover": { bgcolor: "#dc2626" },
-              "&:disabled": { bgcolor: "#fee2e2", color: "rgba(0,0,0,0.3)" },
-            }}
-          >
-            Sell
-          </Button>
-        </Stack>
+        {/* Display tooltip if portfolio is not selected */}
+        <Tooltip title="Select a portfolio first" disableHoverListener={!!selectedPortfolio}>
+          <span>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained" 
+                fullWidth size="medium"
+                disabled={!ticker || !selectedPortfolio}
+                onClick={() => handleDialogOpen(true)}
+                disableElevation
+                sx={{
+                  bgcolor: "#22c55e", fontWeight: 700, py: 1, borderRadius: 2,
+                  textTransform: "none", fontSize: "0.875rem",
+                  "&:hover": { bgcolor: "#16a34a" },
+                  "&:disabled": { bgcolor: "#dcfce7", color: "rgba(0,0,0,0.3)" },
+                }}
+              >
+                Buy
+              </Button>
+              <Button
+                variant="contained" 
+                fullWidth size="medium"
+                disabled={!ticker || !selectedPortfolio}
+                onClick={() => handleDialogOpen(false)}
+                disableElevation
+                sx={{
+                  bgcolor: "#ef4444", fontWeight: 700, py: 1, borderRadius: 2,
+                  textTransform: "none", fontSize: "0.875rem",
+                  "&:hover": { bgcolor: "#dc2626" },
+                  "&:disabled": { bgcolor: "#fee2e2", color: "rgba(0,0,0,0.3)" },
+                }}
+              >
+                Sell
+              </Button>
+            </Stack>
+          </span>
+        </Tooltip>
       </Paper>
 
       <Dialog
@@ -212,7 +215,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
           )}
 
           <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
-            Portfolio Balance: 
+            Portfolio Balance:{" "} 
             <b style={{ color: theme.palette.text.primary }}>
               ${portfolioCash}
             </b>
