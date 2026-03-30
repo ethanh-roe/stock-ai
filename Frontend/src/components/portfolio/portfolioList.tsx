@@ -10,11 +10,11 @@ interface Props {
 }
 
 const PortfolioList: React.FC<Props> = ({
-    portfolios,
-    selectedPortfolioId,
-    setSelectedPortfolioId,
-    loadPositions,
-    loading,
+  portfolios,
+  selectedPortfolioId,
+  setSelectedPortfolioId,
+  loadPositions,
+  loading,
 }) => {
 
   if (loading) return <Typography sx={{ px: 4 }}>Loading portfolios...</Typography>;

@@ -4,11 +4,11 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useState } from "react";
 
 interface Props {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    onEnter?: () => void;
-    type?: "text" | "password";
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onEnter?: () => void;
+  type?: "text" | "password";
 }
 
 export const AuthTextField: React.FC<Props> = ({
@@ -18,38 +18,38 @@ export const AuthTextField: React.FC<Props> = ({
   onEnter,
   type = "text",
 }) => {
-    const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-    const isPassword = type === "password";
+  const isPassword = type === "password";
 
-    return (
-        <TextField
-          fullWidth
-          required
-          label={label}
-          variant="outlined"
-          value={value}
-          type={isPassword && !showPassword ? "password" : "text"}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onEnter?.()}
-          sx={fieldSx}
-          slotProps={
-            isPassword
-              ? {
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPassword((p) => !p)}>
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }
-              : undefined
+  return (
+    <TextField
+      fullWidth
+      required
+      label={label}
+      variant="outlined"
+      value={value}
+      type={isPassword && !showPassword ? "password" : "text"}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && onEnter?.()}
+      sx={fieldSx}
+      slotProps={
+        isPassword
+          ? {
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword((p) => !p)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }
-        />
-    );
+          : undefined
+      }
+    />
+  );
 };
 
 const fieldSx = {

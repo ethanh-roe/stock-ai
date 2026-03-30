@@ -14,15 +14,15 @@ interface Props {
 }
 
 const PortfolioDetails: React.FC<Props> = ({
-    portfolio,
-    positions,
-    user,
-    setUser,
-    setError,
-    onUpdatePortfolio
+  portfolio,
+  positions,
+  user,
+  setUser,
+  setError,
+  onUpdatePortfolio
 }) => (
   <Box sx={{ p: 2 }}>
-    
+
     <Box sx={{ mb: 2 }}>
       <Typography variant="h4" sx={{ fontWeight: 700 }}>
         {portfolio.name}

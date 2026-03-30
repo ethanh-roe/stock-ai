@@ -1,12 +1,12 @@
 export type TradeType = "BUY" | "SELL";
 
 export interface TradeRequest {
-    portfolio_id: number;
-    type: TradeType;
-    ticker: string;
-    asset_name: string;
-    quantity: number;
-    price: number;
+  portfolio_id: number;
+  type: TradeType;
+  ticker: string;
+  asset_name: string;
+  quantity: number;
+  price: number;
 }
 
 export interface TradeResult {

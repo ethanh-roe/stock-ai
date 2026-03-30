@@ -15,7 +15,7 @@ type StockOrderProps = {
   selectedPortfolioId: number | null;
 };
 
-const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfolioId}: StockOrderProps) => {
+const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfolioId }: StockOrderProps) => {
   const theme = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isBuyMode, setIsBuyMode] = useState<boolean>(true);
@@ -59,30 +59,30 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
 
   const handleConfirm = async () => {
     if (!selectedPortfolio) return;
-      console.log("Sending trade:", {
+    console.log("Sending trade:", {
+      portfolio_id: selectedPortfolio,
+      type: isBuyMode ? "BUY" : "SELL",
+      ticker,
+      asset_name: assetName,
+      quantity: Number(orderSize),
+      price: Number(livePrice)
+    });
+
+    try {
+      await tradeService.newTrade({
         portfolio_id: selectedPortfolio,
         type: isBuyMode ? "BUY" : "SELL",
         ticker,
         asset_name: assetName,
         quantity: Number(orderSize),
-        price: Number(livePrice)
+        price: livePrice ?? 0
       });
+      await loadPositions(selectedPortfolio);
+    } catch (err: any) {
+      console.log("Trade error:", err.response?.data);
+    }
 
-      try{
-        await tradeService.newTrade({
-          portfolio_id: selectedPortfolio,
-          type: isBuyMode ? "BUY" : "SELL",
-          ticker,
-          asset_name: assetName,
-          quantity: Number(orderSize),
-          price: livePrice ?? 0
-        });
-        await loadPositions(selectedPortfolio);
-      } catch (err: any) {
-        console.log("Trade error:", err.response?.data);
-      }
-      
-      handleDialogClose();
+    handleDialogClose();
   }
   console.log("livePrice:", livePrice);
   const handleDialogClose = () => setIsDialogOpen(false);
@@ -130,7 +130,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
           <span>
             <Stack direction="row" spacing={1}>
               <Button
-                variant="contained" 
+                variant="contained"
                 fullWidth size="medium"
                 disabled={!ticker || !selectedPortfolio}
                 onClick={() => handleDialogOpen(true)}
@@ -145,7 +145,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
                 Buy
               </Button>
               <Button
-                variant="contained" 
+                variant="contained"
                 fullWidth size="medium"
                 disabled={!ticker || !selectedPortfolio}
                 onClick={() => handleDialogOpen(false)}
@@ -215,7 +215,7 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
           )}
 
           <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
-            Portfolio Balance:{" "} 
+            Portfolio Balance:{" "}
             <b style={{ color: theme.palette.text.primary }}>
               ${portfolioCash}
             </b>
@@ -236,14 +236,14 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfoli
             Cancel
           </Button>
           <Button
-            variant="contained" 
+            variant="contained"
             onClick={handleConfirm}
             disabled={
-              !validOrderSize || 
+              !validOrderSize ||
               !selectedPortfolio ||
               insufficientBalance ||
               insufficientShares
-            } 
+            }
             disableElevation
             sx={{
               bgcolor: isBuyMode ? "#22c55e" : "#ef4444",

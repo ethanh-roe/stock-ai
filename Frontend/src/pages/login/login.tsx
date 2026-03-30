@@ -4,7 +4,7 @@ import "./login.css";
 import type { LoginRequest } from "../../types/auth";
 import { useAuth } from "../../hooks/useAuth";
 import { LoginLeft } from "../../components/auth/login/loginLeft";
-import { LoginForm  } from "../../components/auth/login/loginForm";
+import { LoginForm } from "../../components/auth/login/loginForm";
 import { AuthLayout } from "../../components/auth/common/authLayout";
 
 const Login = () => {

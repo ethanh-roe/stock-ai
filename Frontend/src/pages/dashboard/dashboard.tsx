@@ -42,11 +42,11 @@ const StockDashboard: React.FC = () => {
 
       {ticker && (
         <Grid container spacing={2}>
-          <StockChartContainer ticker={ticker} setLivePrice={setLivePrice}/>
+          <StockChartContainer ticker={ticker} setLivePrice={setLivePrice} />
 
           <Grid size={4}>
             <Box sx={{ display: "flex", flexDirection: "column", height: "76vh", gap: 2 }}>
-              <StockProfile ticker={ticker} setAssetName={setAssetName}/>
+              <StockProfile ticker={ticker} setAssetName={setAssetName} />
 
               {/* Portfolio selector */}
               <FormControl fullWidth>
@@ -62,9 +62,9 @@ const StockDashboard: React.FC = () => {
                   ))}
                 </Select>
               </FormControl>
-              
+
               {/* Buy/Sell */}
-              <StockOrder ticker={ticker} assetName={assetName} livePrice={livePrice} portfolios={portfolios} selectedPortfolioId={selectedPortfolioId}/>
+              <StockOrder ticker={ticker} assetName={assetName} livePrice={livePrice} portfolios={portfolios} selectedPortfolioId={selectedPortfolioId} />
             </Box>
           </Grid>
 

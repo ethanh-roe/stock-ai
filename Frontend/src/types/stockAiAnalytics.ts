@@ -3,7 +3,7 @@ export interface StockAiAnalyticsModal {
     confidence: number;
     sentiment: "Bullish" | "Bearish" | "Neutral";
     summary: string;
-    momentumScore: number;       
+    momentumScore: number;
     momentumLabel: "Strong" | "Moderate" | "Weak";
     riskLevel: "Low" | "Medium" | "High";
 }

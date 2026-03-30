@@ -33,8 +33,8 @@ const router = createBrowserRouter([
           </>
         ),
         children: [
-          { 
-            index: true, 
+          {
+            index: true,
             element: <Dashboard />
           },
           {
@@ -59,7 +59,7 @@ function App() {
         <RouterProvider router={router} />
       </ThemeProvider>
     </AuthProvider>
-    
+
   );
 }
 

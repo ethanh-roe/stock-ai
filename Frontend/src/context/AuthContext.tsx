@@ -7,8 +7,8 @@ interface AuthContext {
 }
 
 export const AuthContext = createContext<AuthContext>({
-  user: null,
-  setUser: () => {},
+    user: null,
+    setUser: () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -16,15 +16,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const stored = localStorage.getItem("user");
         if (stored) {
-          const parsed = JSON.parse(stored);
-          parsed.cash_balance = Number(parsed.cash_balance);
-          setUser(parsed);
+            const parsed = JSON.parse(stored);
+            parsed.cash_balance = Number(parsed.cash_balance);
+            setUser(parsed);
         }
     }, []);
 
     useEffect(() => {
         if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("user", JSON.stringify(user));
         }
     }, [user]);
 

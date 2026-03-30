@@ -67,7 +67,7 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 20, 
+    borderRadius: 20,
   },
   components: {
     MuiButton: {

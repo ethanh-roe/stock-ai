@@ -1,4 +1,4 @@
-import { useUser} from "./useUser";
+import { useUser } from "./useUser";
 import type { UserInfo, LoginRequest } from "../types/auth";
 import AuthService from "../services/authService";
 import api from "../types/api";
@@ -23,5 +23,5 @@ export const useAuth = () => {
         removeUser();
     };
 
-    return { user, login, logout, setUser};
+    return { user, login, logout, setUser };
 }

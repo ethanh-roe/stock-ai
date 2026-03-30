@@ -19,10 +19,10 @@ interface Props {
   setError: (msg: string | null) => void;
 }
 
-const CreatePortfolioForm: React.FC<Props> = ({ 
-  onCreate, 
-  error, 
-  setError 
+const CreatePortfolioForm: React.FC<Props> = ({
+  onCreate,
+  error,
+  setError
 }) => {
   const [name, setName] = useState("");
   const [initial, setInitialAmount] = useState(0);
@@ -37,17 +37,17 @@ const CreatePortfolioForm: React.FC<Props> = ({
   const closeCreateDialog = () => setIsDialogOpen(false);
 
   const submit = () => {
-      if (!name) return setError("Portfolio name cannot be empty");
-      setError(null);
-      onCreate(name, initial);
-      setName("")
-      setInitialAmount(0);
-      setIsDialogOpen(false);
+    if (!name) return setError("Portfolio name cannot be empty");
+    setError(null);
+    onCreate(name, initial);
+    setName("")
+    setInitialAmount(0);
+    setIsDialogOpen(false);
   };
 
   return (
     <Box sx={{ px: 4, pt: 4 }}>
-      
+
       <Button
         variant="contained"
         onClick={handleDialogOpen}
@@ -72,18 +72,18 @@ const CreatePortfolioForm: React.FC<Props> = ({
           </DialogTitle>
 
           <Stack spacing={2}>
-            <TextField 
-              label="Portfolio Name" 
-              value={name} 
-              onChange={e => setName(e.target.value)} 
-              size="small" 
+            <TextField
+              label="Portfolio Name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              size="small"
             />
 
-            <TextField 
-              label="Initial Balance" 
-              type="number" value={initial} 
-              onChange={e => setInitialAmount(+e.target.value)} 
-              size="small" 
+            <TextField
+              label="Initial Balance"
+              type="number" value={initial}
+              onChange={e => setInitialAmount(+e.target.value)}
+              size="small"
             />
           </Stack>
 
@@ -95,7 +95,7 @@ const CreatePortfolioForm: React.FC<Props> = ({
               pt: 3
             }}
           >
-            <Button 
+            <Button
               onClick={submit}
               style={btnBase}
             >

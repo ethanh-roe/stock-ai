@@ -28,7 +28,7 @@ const Register = () => {
   const handleRegister = async () => {
     if (
       !registerData.username.trim() ||
-      !registerData.email.trim()    ||
+      !registerData.email.trim() ||
       !registerData.password.trim()
     ) {
       setError("All fields must be filled");
