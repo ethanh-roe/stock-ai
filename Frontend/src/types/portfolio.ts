@@ -25,4 +25,7 @@ export interface PositionInfo {
     ticker: string;
     quantity: number;
     avg_cost_basis: number;
+    current_price: number;
+    total_value: number;
+    unrealized_gain: number;
 }

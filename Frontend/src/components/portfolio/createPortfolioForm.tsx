@@ -48,33 +48,13 @@ const CreatePortfolioForm: React.FC<Props> = ({
   return (
     <Box sx={{ px: 4, pt: 4 }}>
       
-      <Box 
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-          px: 4
-        }}
+      <Button
+        variant="contained"
+        onClick={handleDialogOpen}
+        sx={{ ...btnBase, fontSize: "1.0rem", alignSelf: "flex-start" }}
       >
-        <Typography sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
-          Portfolios
-        </Typography>
-
-        <Button
-          variant="contained"
-          onClick={handleDialogOpen}
-          sx={{
-            bgcolor: "#2d6a4f",
-            fontWeight: 700,
-            textTransform: "none",
-            borderRadius: 2,
-            "&:hover": { bgcolor: "#1b4332" }
-          }}
-        >
-          Create Portfolio
-        </Button>
-      </Box>
+        Create Portfolio
+      </Button>
 
       <Dialog open={isDialogOpen} onClose={closeCreateDialog} fullWidth maxWidth="sm">
         <Box
@@ -117,13 +97,13 @@ const CreatePortfolioForm: React.FC<Props> = ({
           >
             <Button 
               onClick={submit}
-              style={{ ...btnBase, backgroundColor: "#2d6a4f", color: "#fff" }}
+              style={btnBase}
             >
               Create
             </Button>
             <Button
               onClick={closeCreateDialog}
-              style={{ ...btnBase, backgroundColor: "#ff0000", color: "#fff" }}
+              style={btnBase}
             >
               Cancel
             </Button>

@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemText, Typography } from "@mui/material"
+import { List, ListItem, ListItemText, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
 import type { PositionInfo } from "../../types/portfolio";
 
 interface Props {
@@ -10,16 +10,37 @@ const PortfolioPositions: React.FC<Props> = ({ positions }) => {
         return <Typography sx={{ color: "#7a6f63" }}>No positions held.</Typography>
 
     return (
-        <List dense disablePadding>
-            {positions.map(pos => (
-                <ListItem key={pos.ticker} disableGutters sx={{ py: 0.5 }}>
-                    <ListItemText
-                        primary={<Typography sx={{ fontWeight: 700 }}>{pos.ticker}</Typography>}
-                        secondary={<Typography sx={{ fontSize: "0.8rem" }}>Qty: {Number(pos.quantity).toFixed(2)} | Avg Cost: ${Number(pos.avg_cost_basis).toFixed(2)}</Typography>}
-                        />
-                </ListItem>
-            ))}
-        </List>
+        <Table size="small">
+            <TableHead>
+                <TableRow>
+                    <TableCell><b>Ticker</b></TableCell>
+                    <TableCell align="right"><b>Quantity</b></TableCell>
+                    <TableCell align="right"><b>Average Cost</b></TableCell>
+                    <TableCell align="right"><b>Price</b></TableCell>
+                    <TableCell align="right"><b>Value</b></TableCell>
+                    <TableCell align="right"><b>Profit</b></TableCell>
+                </TableRow>
+            </TableHead>
+
+            <TableBody>
+                {positions.map(pos => (
+                    <TableRow key={pos.ticker}>
+                        <TableCell>{pos.ticker}</TableCell>
+                        <TableCell align="right">{Number(pos.quantity).toFixed(2)}</TableCell>
+                        <TableCell align="right">{Number(pos.avg_cost_basis).toFixed(2)}</TableCell>
+                        <TableCell align="right">{Number(pos.current_price).toFixed(2)}</TableCell>
+                        <TableCell align="right">{Number(pos.total_value).toFixed(2)}</TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{ color: Number(pos.unrealized_gain) >= 0 ? "success.main" : "error.main" }}
+                        >
+                          {Number(pos.unrealized_gain) >= 0 ? "+" : ""}
+                          ${Number(pos.unrealized_gain).toFixed(2)}
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
     );
 };
 

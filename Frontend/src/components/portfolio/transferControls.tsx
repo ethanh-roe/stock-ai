@@ -1,8 +1,9 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
 import PortfolioService from "../../services/portfolioService";
 import { useState } from "react";
-import type { PortfolioInfo } from "../../types/portfolio";
+import type { CashTransferRequest, PortfolioInfo } from "../../types/portfolio";
 import type { UserInfo } from "../../types/auth";
+import { useNavigate } from "react-router-dom"
 
 const btnBase: React.CSSProperties = {
   padding: "6px 18px",
@@ -31,50 +32,121 @@ const TransferControls: React.FC<Props> = ({
     setError,
     onUpdatePortfolio
 }) => {
-    const [amount, setAmount] = useState(0);
+    const [open, setOpen] = useState(false);
+    const [mode, setMode] = useState<"deposit" | "withdraw">("deposit");
+    const [amount, setAmount] = useState("");
+    const [dialogError, setDialogError] = useState<string | null>(null);
 
-    const cashIn = async () => {
-        if (!user || amount <= 0) return;
+    const navigate = useNavigate();
 
-        try{
-            const res = await PortfolioService.cashIn({
-                portfolio_id: portfolio.id, 
-                xfer_amount: amount
-            });
-            console.log(res);
-            onUpdatePortfolio(res.new_cash_balance);
-            setUser({ ...user, cash_balance: user.cash_balance - amount });
-        } catch (err: any) {
-            console.log(err);
-            setError(err?.response?.data?.detail ?? "Failed to transfer money");
-        }
-        
+    const handleOpen = (m: "deposit" | "withdraw") => {
+        setMode(m);
+        setAmount("");
+        setOpen(true);
     };
 
-    const cashOut = async () => {
-        if (!user || amount <= 0) return;
+    const handleClose = () => setOpen(false);
+
+    const handleTrade = () => navigate("/");
+
+    const handleSubmit = async () => {
+        const value = Number(amount);
+        if (isNaN(value) || value <= 0) {
+            setError("Enter a valid amount");
+            return;
+        }
+
+        const transfer: CashTransferRequest = {
+            portfolio_id: portfolio.id,
+            xfer_amount: value
+        };
 
         try {
-            const res = await PortfolioService.cashOut({
-                portfolio_id: portfolio.id, 
-                xfer_amount: amount 
-            });
-            console.log(res);
+            const res = 
+                mode === "deposit"
+                ? await PortfolioService.cashIn(transfer)
+                : await PortfolioService.cashOut(transfer);
+            
             onUpdatePortfolio(res.new_cash_balance);
-            setUser({ ...user, cash_balance: user.cash_balance + amount});
+
+            if (user) {
+                mode === "deposit"
+                ? setUser({ ...user, cash_balance: user.cash_balance - value })
+                : setUser({ ...user, cash_balance: user.cash_balance + value });
+            }
+            setDialogError(null);
+            setOpen(false);
         } catch (err: any) {
-            console.log(err);
-            setError(err?.response?.data?.detail ?? "Failed to transfer money");
+            setDialogError(err?.response?.data?.detail ?? "Transfer failed");
         }
-        
     };
 
     return (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }} onClick={e => e.stopPropagation()}>
-            <TextField type="number" size="small" value={amount} onChange={e => setAmount(+e.target.value)} />
-            <Button style={{ ...btnBase, backgroundColor: "#2d6a4f", color: "#fff" }} onClick={cashIn}>Add</Button>
-            <Button style={{ ...btnBase, backgroundColor: "#9b2335", color: "#fff" }} onClick={cashOut}>Withdraw</Button>
-        </Box>
+        <>
+          <Button 
+          variant="contained"
+          style={btnBase}
+          onClick={() => handleOpen("deposit")}
+          >
+            Deposit
+          </Button>
+        
+          <Button 
+          variant="outlined"
+          style={btnBase}
+          onClick={() => handleOpen("withdraw")}
+          >
+            Withdraw
+          </Button>
+
+          <Button 
+          variant="outlined" 
+          style={btnBase}
+          onClick={handleTrade}
+          >
+            Trade
+          </Button>
+        
+          <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>
+              {mode === "deposit" ? "Deposit Funds" : "Withdraw Funds"}
+            </DialogTitle>
+        
+            <DialogContent>
+                {dialogError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {dialogError}
+                    </Alert>
+                )}
+
+              <TextField
+                autoFocus
+                margin="dense"
+                label="Amount"
+                type="number"
+                fullWidth
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </DialogContent>
+            
+            <DialogActions>
+              <Button 
+              variant="contained"
+              style={btnBase} 
+              onClick={handleSubmit}
+              >
+                Confirm
+              </Button>
+              <Button 
+              style={btnBase}
+              onClick={handleClose}
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
     );
 };
 

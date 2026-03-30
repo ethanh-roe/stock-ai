@@ -12,15 +12,22 @@ type StockOrderProps = {
   assetName: string;
   livePrice?: number;
   portfolios: PortfolioInfo[];
+  selectedPortfolioId: number | null;
 };
 
-const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps) => {
+const StockOrder = ({ ticker, assetName, livePrice, portfolios, selectedPortfolioId}: StockOrderProps) => {
   const theme = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isBuyMode, setIsBuyMode] = useState<boolean>(true);
   const [orderSize, setOrderSize] = useState<string>("");
   const [selectedPortfolio, setSelectedPortfolio] = useState<number | null>(null);
   const [positions, setPositions] = useState<PositionInfo[]>([]);
+
+  useEffect(() => {
+    if (selectedPortfolioId) {
+      setSelectedPortfolio(selectedPortfolioId);
+    }
+  }, [selectedPortfolioId]);
 
   useEffect(() => {
     if (!selectedPortfolio) return;
@@ -47,6 +54,11 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
   const handleDialogOpen = (isBuying: boolean) => {
     setIsBuyMode(isBuying);
     setOrderSize("");
+
+    if (!selectedPortfolio && portfolios.length > 0) {
+      setSelectedPortfolio(portfolios[0].id);
+    }
+
     setIsDialogOpen(true);
   };
 
@@ -82,6 +94,12 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
   const orderSizeNum = Number(orderSize);
   const validOrderSize =
     Number.isFinite(orderSizeNum) && orderSizeNum > 0 && Number.isInteger(orderSizeNum);
+
+  const selectedPortfolioObj = portfolios.find(p => p.id === selectedPortfolio);
+  const portfolioCash = Number(selectedPortfolioObj?.cash_balance ?? 0);
+  const totalCost = orderSizeNum * (livePrice ?? 0);
+  const insufficientBalance = isBuyMode && validOrderSize && totalCost > portfolioCash;
+  const insufficientShares = !isBuyMode && validOrderSize && orderSizeNum > ownedShares;
 
   return (
     <>
@@ -160,24 +178,6 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
             Current Price: <b>${Number(livePrice ?? 0).toFixed(2)}</b>
           </Typography>
 
-          {/* Portfolio Selector */}
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel id="portfolio-select-label">Portfolio</InputLabel>
-            <Select
-              labelId="portfolio-select-label"
-              value={selectedPortfolio ?? ""}
-              label="Portfolio"
-              onChange={(e) => setSelectedPortfolio(Number(e.target.value))}
-              sx={{ borderRadius: 2 }}
-            >
-              {portfolios.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {p.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
           <TextField
             autoFocus fullWidth label="Quantity"
             value={orderSize}
@@ -198,6 +198,26 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
               "& label.Mui-focused": { color: accent },
             }}
           />
+
+          {insufficientBalance && (
+            <Typography sx={{ color: "error.main", mt: 1 }}>
+              Not enough cash in this portfolio.
+            </Typography>
+          )}
+
+          {insufficientShares && (
+            <Typography sx={{ color: "error.main", mt: 1 }}>
+              You don't own enough shares to sell.
+            </Typography>
+          )}
+
+          <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
+            Portfolio Balance: 
+            <b style={{ color: theme.palette.text.primary }}>
+              ${portfolioCash}
+            </b>
+          </Typography>
+
           <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
             Estimated {isBuyMode ? "cost" : "proceeds"}:{" "}
             <b style={{ color: theme.palette.text.primary }}>
@@ -213,8 +233,15 @@ const StockOrder = ({ ticker, assetName, livePrice, portfolios}: StockOrderProps
             Cancel
           </Button>
           <Button
-            variant="contained" onClick={handleConfirm}
-            disabled={!validOrderSize || !selectedPortfolio} disableElevation
+            variant="contained" 
+            onClick={handleConfirm}
+            disabled={
+              !validOrderSize || 
+              !selectedPortfolio ||
+              insufficientBalance ||
+              insufficientShares
+            } 
+            disableElevation
             sx={{
               bgcolor: isBuyMode ? "#22c55e" : "#ef4444",
               fontWeight: 700, textTransform: "none", borderRadius: 2, px: 3,

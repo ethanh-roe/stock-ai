@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
-import { Box, Container } from "@mui/material";
+import { Box, Container, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import StockChatbot from "../../components/dashboard/stockChatBot";
 import StockNews from "../../components/dashboard/stockNews";
 import StockOrder from "../../components/dashboard/stockOrder";
@@ -17,6 +17,7 @@ const StockDashboard: React.FC = () => {
   const [livePrice, setLivePrice] = useState<number | undefined>(undefined);
   const [portfolios, setPortfolios] = useState<PortfolioInfo[]>([]);
   const [assetName, setAssetName] = useState<string>("");
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState<number | null>(null);
 
   useEffect(() => {
     portfolioService.listAll().then(setPortfolios);
@@ -34,7 +35,24 @@ const StockDashboard: React.FC = () => {
           <Grid size={4}>
             <Box sx={{ display: "flex", flexDirection: "column", height: "76vh", gap: 2 }}>
               <StockProfile ticker={ticker} setAssetName={setAssetName}/>
-              <StockOrder ticker={ticker} assetName={assetName} livePrice={livePrice} portfolios={portfolios}/>
+
+              {/* Portfolio selector */}
+              <FormControl fullWidth>
+                <InputLabel id="portfolio-select-label">Select a Portfolio</InputLabel>
+                <Select
+                  labelId="portfolio-select-label"
+                  value={selectedPortfolioId ?? ""}
+                  label="Select a Portfolio"
+                  onChange={(e) => setSelectedPortfolioId(Number(e.target.value))}
+                >
+                  {portfolios.map(p => (
+                    <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
+              {/* Buy/Sell */}
+              <StockOrder ticker={ticker} assetName={assetName} livePrice={livePrice} portfolios={portfolios} selectedPortfolioId={selectedPortfolioId}/>
             </Box>
           </Grid>
 
