@@ -1,7 +1,7 @@
 import { Paper, TextField, Button, Divider, Box, Typography, Chip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Search as SearchIcon } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const accent = "#4F6EF7";
 const accentDark = "#3A55D4";
@@ -18,6 +18,13 @@ const StockSearchBar = ({ ticker, setTicker, loading = false }: StockSearchBarPr
   const [_error, setError] = useState<string | null>(null);
 
   const popularTickers = ["AAPL", "GOOGL", "MSFT", "TSLA", "AMZN", "NVDA"];
+
+  // AAPL is the default ticker display when loading the dashboard
+  useEffect(() => {
+    if (!ticker) {
+      setTicker(popularTickers[0]);
+    }
+  }, []);
 
   const handleSearch = (searchTicker?: string): void => {
     const t = (searchTicker ?? search).trim();
