@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { UserInfo } from "../types/auth";
 
 interface AuthContext {
@@ -12,23 +12,26 @@ export const AuthContext = createContext<AuthContext>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<UserInfo | null>(() => {
+    const [user, setUser] = useState<UserInfo | null>(null);
+    useEffect(() => {
         const stored = localStorage.getItem("user");
         if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                parsed.cash_balance = Number(parsed.cash_balance);
-                return parsed;
-            } catch {
-                return null;
-            }
+          const parsed = JSON.parse(stored);
+          parsed.cash_balance = Number(parsed.cash_balance);
+          setUser(parsed);
         }
-        return null;
-    });
+    }, []);
+
+    useEffect(() => {
+        if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        }
+    }, [user]);
+
 
     return (
         <AuthContext.Provider value={{ user, setUser }}>
             {children}
         </AuthContext.Provider>
     )
-}
+};
