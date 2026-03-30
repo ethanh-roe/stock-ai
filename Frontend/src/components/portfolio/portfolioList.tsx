@@ -18,7 +18,7 @@ const PortfolioList: React.FC<Props> = ({
 }) => {
 
   if (loading) return <Typography sx={{ px: 4 }}>Loading portfolios...</Typography>;
-  if (portfolios.length === 0) return <Typography sx={{ px: 4 }}>No portfolios created.</Typography>;
+  if (portfolios.length === 0) return <Typography sx={{ px: 2 }}>No portfolios created.</Typography>;
 
   return (
     <List>
