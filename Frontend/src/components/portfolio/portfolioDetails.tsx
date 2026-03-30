@@ -48,7 +48,7 @@ const PortfolioDetails: React.FC<Props> = ({
 
     <Divider sx={{ mb: 2 }} />
 
-    <PortfolioPositions positions={positions} />
+    <PortfolioPositions positions={positions} selectedPortfolioId={portfolio.id} />
   </Box>
 );
 

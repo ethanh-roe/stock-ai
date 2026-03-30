@@ -10,6 +10,7 @@ import StockChartContainer from "../../components/dashboard/stockChartContainer"
 import StockAiAnalytics from "../../components/dashboard/stockAiAnalytics";
 import type { PortfolioInfo } from "../../types/portfolio";
 import portfolioService from "../../services/portfolioService";
+import { useLocation } from "react-router-dom";
 
 
 const StockDashboard: React.FC = () => {
@@ -18,6 +19,17 @@ const StockDashboard: React.FC = () => {
   const [portfolios, setPortfolios] = useState<PortfolioInfo[]>([]);
   const [assetName, setAssetName] = useState<string>("");
   const [selectedPortfolioId, setSelectedPortfolioId] = useState<number | null>(null);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.ticker) {
+      setTicker(location.state.ticker);
+    }
+    if (location.state?.portfolioId) {
+      setSelectedPortfolioId(location.state.portfolioId);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     portfolioService.listAll().then(setPortfolios);

@@ -1,11 +1,14 @@
-import { List, ListItem, ListItemText, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
+import { Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material"
 import type { PositionInfo } from "../../types/portfolio";
+import { useNavigate } from "react-router-dom"
 
 interface Props {
     positions: PositionInfo[];
+    selectedPortfolioId: number;
 }
 
-const PortfolioPositions: React.FC<Props> = ({ positions }) => {
+const PortfolioPositions: React.FC<Props> = ({ positions, selectedPortfolioId }) => {
+    const navigate = useNavigate();
     if (!positions || positions.length === 0)
         return <Typography sx={{ color: "#7a6f63" }}>No positions held.</Typography>
 
@@ -25,7 +28,26 @@ const PortfolioPositions: React.FC<Props> = ({ positions }) => {
             <TableBody>
                 {positions.map(pos => (
                     <TableRow key={pos.ticker}>
-                        <TableCell>{pos.ticker}</TableCell>
+                        {/* Make ticker clickable*/}
+                        <TableCell
+                          sx={{
+                            cursor: "pointer",
+                            color: "primary.main",
+                            fontWeight: 700,
+                            textDecoration: "underline",
+                            "&:hover": { color: "primary.dark" }
+                          }}
+                            onClick={() =>
+                              navigate("/", {
+                                state: {
+                                  ticker: pos.ticker,
+                                  portfolioId: selectedPortfolioId
+                                }
+                              })
+                            }
+                        >
+                          {pos.ticker}
+                        </TableCell>
                         <TableCell align="right">{Number(pos.quantity).toFixed(2)}</TableCell>
                         <TableCell align="right">{Number(pos.avg_cost_basis).toFixed(2)}</TableCell>
                         <TableCell align="right">{Number(pos.current_price).toFixed(2)}</TableCell>
