@@ -48,10 +48,10 @@ const PortfolioPositions: React.FC<Props> = ({ positions, selectedPortfolioId })
             >
               {pos.ticker}
             </TableCell>
-            <TableCell align="right">{Number(pos.quantity).toFixed(2)}</TableCell>
-            <TableCell align="right">{Number(pos.avg_cost_basis).toFixed(2)}</TableCell>
-            <TableCell align="right">{Number(pos.current_price).toFixed(2)}</TableCell>
-            <TableCell align="right">{Number(pos.total_value).toFixed(2)}</TableCell>
+            <TableCell align="right">{Number(pos.quantity)}</TableCell>
+            <TableCell align="right">${Number(pos.avg_cost_basis).toFixed(2)}</TableCell>
+            <TableCell align="right">${Number(pos.current_price).toFixed(2)}</TableCell>
+            <TableCell align="right">${Number(pos.total_value).toFixed(2)}</TableCell>
             <TableCell
               align="right"
               sx={{ color: Number(pos.unrealized_gain) >= 0 ? "success.main" : "error.main" }}
