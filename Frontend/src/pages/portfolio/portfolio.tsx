@@ -33,13 +33,19 @@ const Portfolio: React.FC = () => {
   };
 
   const createPortfolio = async (name: string, initial: number) => {
+  try {
     const p = await PortfolioService.create({ name, initial_balance: initial });
     setPortfolios(prev => [...prev, p]);
 
     if (user) {
       setUser({ ...user, cash_balance: user.cash_balance - initial });
     }
-  };
+  } catch (err) {
+    // THIS MUST BE HERE
+    throw err;
+  }
+};
+
 
   const loadPositions = async (id: number) => {
     const data = await PortfolioService.getPositions(id);
