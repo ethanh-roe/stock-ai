@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
@@ -22,6 +22,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
+http_bearer = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
@@ -51,7 +52,8 @@ def decode_access_token(token: str):
 
 
 # Grabs information about a user given their JWT.
-def user_from_jwt(token: str = Depends(oauth2_scheme)) -> ProtectedResponse:
+def user_from_jwt(credentials: HTTPAuthorizationCredentials = Depends(http_bearer)) -> ProtectedResponse:
+    token = credentials.credentials
     payload = decode_access_token(token)
 
     if payload is None:

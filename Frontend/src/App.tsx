@@ -7,6 +7,7 @@ import Portfolio from "./pages/portfolio/portfolio";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
 import { About } from "./pages/about/about";
+import Leagues from "./pages/leagues/leagues";
 import ProtectedRoute from "./components/protectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
           {
             path: "portfolio",
             element: <Portfolio />
+          },
+          {
+            path: "leagues",
+            element: <Leagues />,
           },
           {
             path: "about",

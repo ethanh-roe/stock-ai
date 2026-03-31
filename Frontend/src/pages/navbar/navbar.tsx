@@ -74,6 +74,20 @@ const NavBar: React.FC = () => {
             </Button>
             <Button
               component={RouterLink}
+              to="/leagues"
+              sx={{
+                color: "#e8ddd0",
+                display: "block",
+                fontSize: "1rem",
+                fontFamily: "'Inter', sans-serif",
+                textTransform: "none",
+                "&:hover": { backgroundColor: "transparent", color: "#f5f0e8" },
+              }}
+            >
+              Leagues
+            </Button>
+            <Button
+              component={RouterLink}
               to="/about"
               sx={{
                 color: "#e8ddd0",
