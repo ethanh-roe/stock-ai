@@ -9,6 +9,7 @@ from app.schema import Portfolio, Position, Ticker, User
 from app.database import get_db
 import yfinance as yf
 from decimal import Decimal
+from datetime import datetime
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
 
@@ -72,6 +73,60 @@ def portfolio_createnew(
     return response
 
 
+@router.delete(
+    "/{portfolio_id}/delete",
+    summary="Delete portfolio with given ID",
+    description="Attempts to delete the portfolio with given ID. The relevant portfolio must exist, be owned by the user, have zero cash balance, and no currently held positions.",
+)
+def portfolio_delete(
+    portfolio_id: int,
+    current_user=Depends(user_from_jwt),
+    db: Session = Depends(get_db),
+):
+    # First find and grab portfolio
+    portfolio = (
+        db.query(Portfolio)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == current_user.user_id)
+        .first()
+    )
+    if not portfolio:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio not found or not owned by user.",
+        )
+
+    # Determine if portfolio has already been deleted
+    if portfolio.deleted_at is not None:
+        return {"message": "Portfolio already deleted."}
+
+    # Determine if portfolio has outstanding cash balance
+    # Note: Checking if greater than 1 cent in case rounding errors pop up
+    if portfolio.cash_balance > 0.01:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Portfolio still holds a positive cash balance.",
+        )
+
+    # Next, attempt to find and grab portfolio positions
+    results = (
+        db.query(Position, Ticker)
+        .join(Ticker, Position.ticker_id == Ticker.id)
+        .filter(Position.portfolio_id == portfolio_id)
+        .all()
+    )
+    # check if empty
+    if results:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Portfolio still holds one or more active positions.",
+        )
+
+    # Now soft delete portfolio in database
+    portfolio.deleted_at = datetime.utcnow()
+    db.commit()
+    return {"message": "Portfolio deleted successfully"}
+
+
 @router.get(
     "/listall",
     response_model=List[portfolioModels.PortfolioInfo],
@@ -83,7 +138,11 @@ def portfolio_listall(
 ):
     user_id = current_user.user_id
 
-    portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
+    portfolios = (
+        db.query(Portfolio)
+        .filter(Portfolio.user_id == user_id, Portfolio.deleted_at.is_(None))
+        .all()
+    )
 
     return portfolios
 
@@ -154,8 +213,8 @@ def get_positions(
         if current_price is not None:
             total_value = current_price * position.quantity
             unrealized_gain = (
-                (current_price - position.avg_cost_basis) * position.quantity
-            )
+                current_price - position.avg_cost_basis
+            ) * position.quantity
 
         response.append(
             portfolioModels.PositionInfo(

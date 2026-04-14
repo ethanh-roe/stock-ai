@@ -15,7 +15,8 @@ from sqlalchemy import (
     Text,
 )
 import enum
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 
 
 # Trade direction enum
@@ -82,6 +83,7 @@ class Portfolio(Base):
     name = Column(String(100), nullable=False)
     cash_balance = Column(Numeric(15, 2), nullable=False, default=0)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    deleted_at = Column(TIMESTAMP, nullable=True, default=None)
 
     user: Mapped["User"] = relationship(back_populates="portfolios")
     positions: Mapped[List["Position"]] = relationship(

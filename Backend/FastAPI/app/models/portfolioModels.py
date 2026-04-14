@@ -33,9 +33,9 @@ class PositionInfo(BaseModel):
 
 class Portfolio_Cash_Xfer_Request(BaseModel):
     portfolio_id: int
-    xfer_amount: int
+    xfer_amount: Decimal
 
 
 class Portfolio_Cash_Xfer_Response(BaseModel):
     portfolio_id: int
-    new_cash_balance: int
+    new_cash_balance: Decimal
