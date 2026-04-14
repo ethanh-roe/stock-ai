@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from decimal import Decimal
 
@@ -35,6 +35,9 @@ class Portfolio_Cash_Xfer_Request(BaseModel):
     portfolio_id: int
     xfer_amount: Decimal
 
+class Portfolio_rename(BaseModel):
+    portfolio_id: int
+    new_name: str = Field(..., min_length = 1, max_length = 100)
 
 class Portfolio_Cash_Xfer_Response(BaseModel):
     portfolio_id: int

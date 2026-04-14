@@ -73,6 +73,53 @@ def portfolio_createnew(
     return response
 
 
+@router.patch(
+    "/rename",
+    summary="Rename a portfolio",
+    description="Updates the name of a portfolio owned by the user.",
+    response_model=portfolioModels.Portfolio_rename,
+)
+def portfolio_rename(
+    request:portfolioModels.Portfolio_rename,
+    current_user=Depends(user_from_jwt),
+    db: Session = Depends(get_db),
+):
+    # fetch portfolio
+    portfolio = (
+        db.query(Portfolio)
+        .filter(
+            Portfolio.id == request.portfolio_id,
+            Portfolio.user_id == current_user.user_id,
+            Portfolio.deleted_at.is_(None),
+        )
+        .first()
+    )
+
+    if not portfolio:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio not found or not owned by user.",
+        )
+
+    # Update name
+    portfolio.name = request.new_name.strip()
+
+    # Attempt to commit change
+    try:
+        db.commit()
+        db.refresh(portfolio)
+
+        return portfolioModels.Portfolio_rename(
+            portfolio_id=request.portfolio_id, new_name=request.new_name.strip()
+        )
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to rename portfolio.",
+        )
+
+
 @router.delete(
     "/{portfolio_id}/delete",
     summary="Delete portfolio with given ID",
@@ -123,8 +170,16 @@ def portfolio_delete(
 
     # Now soft delete portfolio in database
     portfolio.deleted_at = datetime.utcnow()
-    db.commit()
-    return {"message": "Portfolio deleted successfully"}
+
+    try:
+        db.commit()
+        db.refresh(portfolio)
+        return {"message": "Portfolio deleted successfully"}
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete portfolio.",
+        )
 
 
 @router.get(
@@ -237,7 +292,7 @@ def get_positions(
     summary="Transfers funds from user's cash balance to the portfolio's cash balance.",
     description="Requires JWT authorization header. Attempts to add a specified amount to given portfolio id, checking for ownership of portfolio as well as sufficient user cash balance.",
 )
-def portfolio_cash_out(
+def portfolio_cash_in(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
@@ -308,7 +363,7 @@ def portfolio_cash_out(
     summary="Transfers funds from portfolio's cash balance to the user's cash balance.",
     description="Requires JWT authorization header. Attempts to deduct a specified amount from given portfolio id, checking for ownership of portfolio as well as sufficient portfolio cash balance.",
 )
-def portfolio_cash_in(
+def portfolio_cash_out(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
