@@ -13,6 +13,7 @@ from sqlalchemy import (
     Date,
     UniqueConstraint,
     Text,
+    CheckConstraint
 )
 import enum
 from typing import List, Optional
@@ -26,14 +27,14 @@ class TradeType(str, enum.Enum):
 
 
 class LeagueStatus(str, enum.Enum):
-    PENDING = "pending"   # before start_date, joinable
-    ACTIVE = "active"     # started, locked
+    PENDING = "pending"  # before start_date, joinable
+    ACTIVE = "active"  # started, locked
     ENDED = "ended"
 
 
 class SnapshotType(str, enum.Enum):
     BASELINE = "baseline"  # locked at start_date, write-once
-    DAILY = "daily"        # periodic check-ins for race chart
+    DAILY = "daily"  # periodic check-ins for race chart
 
 
 class MessageType(str, enum.Enum):
@@ -94,6 +95,15 @@ class Portfolio(Base):
         back_populates="portfolio",
         cascade="all, delete-orphan",
     )
+
+    outgoing_transfers: Mapped[List["Transfer"]] = relationship(
+        foreign_keys="Transfer.from_portfolio_id"
+    )
+
+    incoming_transfers: Mapped[List["Transfer"]] = relationship(
+        foreign_keys="Transfer.to_portfolio_id"
+    )
+
     league_memberships: Mapped[List["LeagueMember"]] = relationship(
         back_populates="portfolio",
     )
@@ -160,6 +170,11 @@ class Trade(Base):
         ForeignKey("tickers.id", ondelete="CASCADE"),
         nullable=False,
     )
+    transfer_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        ForeignKey("transfers.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     trade_type = Column(Enum(TradeType), nullable=False)
     quantity = Column(Numeric(15, 6), nullable=False)
     price = Column(Numeric(15, 4), nullable=False)
@@ -173,6 +188,30 @@ class Trade(Base):
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="trades")
     ticker: Mapped["Ticker"] = relationship(back_populates="trades")
+    transfer: Mapped[Optional["Transfer"]] = relationship(back_populates="trades")
+
+
+# -------------------------
+# Transfer (Log of Position transfers between portfolios)
+# -------------------------
+class Transfer(Base):
+    __tablename__ = "transfers"
+    
+    __table_args__ = (
+        CheckConstraint("from_portfolio_id != to_portfolio_id", name="no_self_transfer"),
+    )
+
+    id: Mapped[int] = Column(BigInteger, primary_key=True)
+    from_portfolio_id = Column(BigInteger, ForeignKey("portfolios.id"), nullable=False)
+    to_portfolio_id = Column(BigInteger, ForeignKey("portfolios.id"), nullable=False)
+    ticker_id = Column(BigInteger, ForeignKey("tickers.id"), nullable=False)
+    quantity = Column(Numeric(15, 6), nullable=False)
+    cost_basis = Column(Numeric(15, 4), nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+    trades: Mapped[List["Trade"]] = relationship(back_populates="transfer")
+    from_portfolio: Mapped["Portfolio"] = relationship(foreign_keys=[from_portfolio_id])
+    to_portfolio: Mapped["Portfolio"] = relationship(foreign_keys=[to_portfolio_id])
 
 
 # -------------------------
