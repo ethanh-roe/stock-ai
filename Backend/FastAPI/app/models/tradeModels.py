@@ -18,7 +18,8 @@ class TradeResult(BaseModel):
     ticker: str
     quantity: Decimal
     realized_pnl: Decimal
-    
+
+
 # For returned trade history
 class TradeInfo(BaseModel):
     ticker: str

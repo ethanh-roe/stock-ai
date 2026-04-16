@@ -5,13 +5,164 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter, status
 from app.security import user_from_jwt
-from app.schema import Portfolio, Position, Ticker, User
+from app.schema import (
+    Portfolio,
+    Position,
+    Ticker,
+    User,
+    LeagueMember,
+    League,
+    LeagueStatus,
+    Transfer,
+    Trade,
+    TradeType,
+)
 from app.database import get_db
 import yfinance as yf
 from decimal import Decimal
 from datetime import datetime
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
+
+
+# This is the logic to handle transfering positions between portfolios.
+def position_transfer_service(
+    db: Session,
+    user_id: int,
+    from_portfolio_id: int,
+    to_portfolio_id: int,
+    ticker: str,
+    quantity: Decimal,
+):
+    # Check that we're not transfering to and from the same portfolio
+    if from_portfolio_id == to_portfolio_id:
+        raise HTTPException(status_code=400, detail="Cannot transfer to same portfolio")
+
+    # Check that a valid quantity was given
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="Quantity must be positive")
+    
+    # Start an atomic database transaction
+    with db.begin():
+        
+        # First, validate existence & Onwership of portfolios
+        portfolios = (
+            db.query(Portfolio)
+            .filter(
+                Portfolio.id.in_([from_portfolio_id, to_portfolio_id]),
+                Portfolio.user_id == user_id,
+            )
+            .all()
+        )
+
+        if len(portfolios) != 2:
+            raise HTTPException(status_code=403, detail="Invalid portfolio ownership")
+
+        # Check if portfolio is tied to a currently active league
+        active_league = (
+            db.query(LeagueMember)
+            .join(League)
+            .filter(
+                LeagueMember.portfolio_id.in_([from_portfolio_id, to_portfolio_id]),
+                League.status == LeagueStatus.ACTIVE,
+            )
+            .first()
+        )
+
+        if active_league:
+            raise HTTPException(
+                status_code=400, detail="Transfers disabled in active leagues"
+            )
+            
+        # Grab actual ticker from db
+        ticker_obj = (
+            db.query(Ticker).filter(Ticker.symbol == ticker).first()
+        )
+        
+        if not ticker_obj:
+            raise HTTPException(status_code=404, detail="Specified ticker not found")
+
+        # Grab source position; determine if enough shares owned by source portfolio
+        src_pos = (
+            db.query(Position)
+            .filter_by(portfolio_id=from_portfolio_id, ticker_id=ticker_obj.id)
+            .first()
+        )
+
+        if not src_pos or src_pos.quantity < quantity:
+            raise HTTPException(status_code=400, detail="Insufficient shares")
+
+        cost_basis = src_pos.avg_cost_basis
+
+        # Grab destination position, if it already exists
+        dst_pos = (
+            db.query(Position)
+            .filter_by(portfolio_id=to_portfolio_id, ticker_id=ticker_obj.id)
+            .first()
+        )
+
+        # Update Source Position
+        src_pos.quantity -= quantity
+        if src_pos.quantity <= 0:
+            db.delete(src_pos)
+        
+        # Update or create destination position
+        if dst_pos:
+            new_qty = dst_pos.quantity + quantity
+            dst_pos.avg_cost_basis = (
+                (dst_pos.quantity * dst_pos.avg_cost_basis) + (quantity * cost_basis)
+            ) / new_qty
+            dst_pos.quantity = new_qty
+        else:
+            dst_pos = Position(
+                portfolio_id=to_portfolio_id,
+                ticker_id=ticker_obj.id,
+                quantity=quantity,
+                avg_cost_basis=cost_basis,
+            )
+            db.add(dst_pos)
+
+        # Create record of transfer for bookkeeping
+        transfer = Transfer(
+            from_portfolio_id=from_portfolio_id,
+            to_portfolio_id=to_portfolio_id,
+            ticker_id=ticker_obj.id,
+            quantity=quantity,
+            cost_basis=cost_basis,
+        )
+        db.add(transfer)
+        db.flush()  # get transfer.id
+
+        # Create synthetic trades for more bookkeeping
+        db.add_all(
+            [
+                Trade(
+                    portfolio_id=from_portfolio_id,
+                    ticker_id=ticker_obj.id,
+                    trade_type=TradeType.SELL,
+                    quantity=quantity,
+                    price=cost_basis,
+                    realized_pnl=0,
+                    transfer_id=transfer.id,
+                ),
+                Trade(
+                    portfolio_id=to_portfolio_id,
+                    ticker_id=ticker_obj.id,
+                    trade_type=TradeType.BUY,
+                    quantity=quantity,
+                    price=cost_basis,
+                    realized_pnl=0,
+                    transfer_id=transfer.id,
+                ),
+            ]
+        )
+
+        return portfolioModels.Position_Transfer(
+            from_portfolio_id=from_portfolio_id,
+            to_portfolio_id=to_portfolio_id,
+            ticker=ticker,
+            quantity=quantity,
+        )
 
 
 @router.post(
@@ -80,7 +231,7 @@ def portfolio_createnew(
     response_model=portfolioModels.Portfolio_rename,
 )
 def portfolio_rename(
-    request:portfolioModels.Portfolio_rename,
+    request: portfolioModels.Portfolio_rename,
     current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
@@ -273,6 +424,7 @@ def get_positions(
 
         response.append(
             portfolioModels.PositionInfo(
+                position_id=position.id,
                 portfolio_id=portfolio_id,
                 ticker=ticker.symbol,
                 quantity=position.quantity,
@@ -426,3 +578,24 @@ def portfolio_cash_out(
     )
 
     return response
+
+
+@router.post(
+    "/positiontransfer",
+    response_model=portfolioModels.Position_Transfer,
+    summary="Transfers a full/partial position from one portfolio to another.",
+    description="Attempts to transfer some quanity of shares from one portfolio to another. Must own both portfolios and have enough of specified share to complete transfer.",
+)
+def position_transfer(
+    request: portfolioModels.Position_Transfer,
+    db: Session = Depends(get_db),
+    current_user=Depends(user_from_jwt),
+):
+    return position_transfer_service(
+        db,
+        current_user.user_id,
+        request.from_portfolio_id,
+        request.to_portfolio_id,
+        request.ticker,
+        request.quantity,
+    )

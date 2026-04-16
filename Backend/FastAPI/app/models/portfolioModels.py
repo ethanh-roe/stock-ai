@@ -20,11 +20,12 @@ class PortfolioInfo(BaseModel):
 
 
 class PositionInfo(BaseModel):
+    position_id: int
     portfolio_id: int
     ticker: str
     quantity: Decimal
     avg_cost_basis: Decimal
-    
+
     # Valuation fields
     current_price: Decimal
     total_value: Decimal
@@ -35,10 +36,20 @@ class Portfolio_Cash_Xfer_Request(BaseModel):
     portfolio_id: int
     xfer_amount: Decimal
 
+
 class Portfolio_rename(BaseModel):
     portfolio_id: int
-    new_name: str = Field(..., min_length = 1, max_length = 100)
+    new_name: str = Field(..., min_length=1, max_length=100)
+
 
 class Portfolio_Cash_Xfer_Response(BaseModel):
     portfolio_id: int
     new_cash_balance: Decimal
+
+
+# Request to transfer partial/full position from one portfolio to another
+class Position_Transfer(BaseModel):
+    from_portfolio_id: int
+    to_portfolio_id: int
+    ticker: str
+    quantity: int
