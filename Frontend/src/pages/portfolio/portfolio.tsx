@@ -104,11 +104,11 @@ const Portfolio: React.FC = () => {
         />
       </Box>
 
-      {/* Right portfolio details */}
       <Box sx={{ flexGrow: 1, p: 4 }}>
         {selectedId && (
           <PortfolioDetails
             portfolio={portfolios.find(p => p.id === selectedId)!}
+            portfolios={portfolios}
             positions={positions[selectedId] ?? []}
             user={user}
             setUser={setUser}
@@ -118,6 +118,7 @@ const Portfolio: React.FC = () => {
                 prev.map(p => p.id === id ? { ...p, cash_balance: newBal } : p)
               );
             }}
+            onTransferSuccess={() => loadPositions(selectedId!)}
           />
         )}
       </Box>

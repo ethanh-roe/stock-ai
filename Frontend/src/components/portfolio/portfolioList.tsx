@@ -139,7 +139,6 @@ const PortfolioList: React.FC<Props> = ({
         <MenuItem onClick={openDelete} sx={{ color: "error.main" }}>Delete</MenuItem>
       </Menu>
 
-      {/* Rename dialog */}
       <Dialog open={renameOpen} onClose={() => setRenameOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle>Rename Portfolio</DialogTitle>
         <DialogContent sx={{ pt: "16px !important" }}>
@@ -159,13 +158,12 @@ const PortfolioList: React.FC<Props> = ({
         </DialogActions>
       </Dialog>
 
-      {/* Delete dialog */}
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle>Delete Portfolio</DialogTitle>
         <DialogContent sx={{ pt: "16px !important" }}>
           {deleteError && <Alert severity="error" sx={{ mb: 2 }}>{deleteError}</Alert>}
           <Typography>
-            Are you sure? The portfolio must have a zero cash balance and no open positions.
+            Are you sure?
           </Typography>
         </DialogContent>
         <DialogActions>

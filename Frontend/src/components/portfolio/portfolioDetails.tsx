@@ -7,20 +7,24 @@ import type { PortfolioInfo, PositionInfo } from "../../types/portfolio";
 
 interface Props {
   portfolio: PortfolioInfo;
+  portfolios: PortfolioInfo[];
   positions: PositionInfo[];
   user: UserInfo | null;
   setUser: (u: UserInfo | null) => void;
   setError: (msg: string | null) => void;
   onUpdatePortfolio: (id: number, newBalance: number) => void;
+  onTransferSuccess?: () => void;
 }
 
 const PortfolioDetails: React.FC<Props> = ({
   portfolio,
+  portfolios,
   positions,
   user,
   setUser,
   setError,
-  onUpdatePortfolio
+  onUpdatePortfolio,
+  onTransferSuccess
 }) => {
   const navigate = useNavigate();
   return (
@@ -47,12 +51,13 @@ const PortfolioDetails: React.FC<Props> = ({
 
       <TransferControls
         portfolio={portfolio}
+        portfolios={portfolios}
+        positions={positions}
         user={user}
         setUser={setUser}
         setError={setError}
-        onUpdatePortfolio={(newBalance) =>
-          onUpdatePortfolio(portfolio.id, newBalance)
-        }
+        onUpdatePortfolio={(newBalance) => onUpdatePortfolio(portfolio.id, newBalance)}
+        onTransferSuccess={onTransferSuccess}
       />
     </Box>
 

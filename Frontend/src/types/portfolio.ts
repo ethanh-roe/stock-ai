@@ -64,3 +64,8 @@ export interface ActivityItem {
     price: number;
     executed_at: string;
 }
+
+export interface Portfolio_rename {
+    portfolio_id: number;
+    new_name: string;
+}

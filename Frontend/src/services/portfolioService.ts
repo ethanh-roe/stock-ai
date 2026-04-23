@@ -1,5 +1,5 @@
 import api from "../types/api";
-import type { PortfolioInfo, PortfolioCreateRequest, CashTransferResponse, CashTransferRequest, PositionInfo, SnapshotResponse, ActivityItem } from "../types/portfolio";
+import type { PortfolioInfo, PortfolioCreateRequest, CashTransferResponse, CashTransferRequest, PositionInfo, SnapshotResponse, ActivityItem, Portfolio_rename } from "../types/portfolio";
 
 class PortfolioService {
     async listAll(): Promise<PortfolioInfo[]> {
@@ -40,10 +40,8 @@ class PortfolioService {
     }
 
     async renamePortfolio(portfolio_id: number, new_name: string) {
-        const body = { portfolio_id, new_name };
-        console.log("rename payload:", body);  // <-- add this
-        const res = await api.patch("/portfolios/rename", body);
-        return res.data;
+        const { data } = await api.patch<Portfolio_rename[]>(`/portfolios/rename`, { portfolio_id, new_name });
+        return data;
     }
 
     async deletePortfolio(portfolio_id: number) {
