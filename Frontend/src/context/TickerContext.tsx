@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from "react";
 
 interface TickerContext {
   ticker: string;
-  setTicker: (ticker: string) => void;
+  setTicker: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const TickerContext = createContext<TickerContext>({
