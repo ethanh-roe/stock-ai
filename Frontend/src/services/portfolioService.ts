@@ -38,6 +38,26 @@ class PortfolioService {
         const { data } = await api.get<ActivityItem[]>(`/portfolios/${portfolioId}/activity`, { params: { limit } });
         return data;
     }
+
+    async renamePortfolio(portfolio_id: number, new_name: string) {
+        const body = { portfolio_id, new_name };
+        console.log("rename payload:", body);  // <-- add this
+        const res = await api.patch("/portfolios/rename", body);
+        return res.data;
+    }
+
+    async deletePortfolio(portfolio_id: number) {
+      const res = await api.delete(`/portfolios/${portfolio_id}/delete`);
+      return res.data;
+    }
+
+    async transferAsset(payload: { from_portfolio_id: number;to_portfolio_id: number; ticker: string; quantity: number; }) {
+      const res = await api.post("/portfolios/positiontransfer", {
+        ...payload,
+        quantity: Math.floor(payload.quantity), // ensure int, not float
+      });
+      return res.data;
+    }
 }
 
 export default new PortfolioService();

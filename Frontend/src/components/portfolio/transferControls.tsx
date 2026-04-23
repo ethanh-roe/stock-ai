@@ -49,6 +49,12 @@ const TransferControls: React.FC<Props> = ({
 
   const handleTrade = () => navigate("/");
 
+  const handleTransfer = () => transfer();
+
+  const transfer = () => {
+    
+  }
+
   const handleSubmit = async () => {
     const value = Number(amount);
     if (isNaN(value) || value <= 0) {
@@ -105,6 +111,14 @@ const TransferControls: React.FC<Props> = ({
         onClick={handleTrade}
       >
         Trade
+      </Button>
+
+      <Button
+        variant="outlined"
+        style={btnBase}
+        onClick={handleTransfer}
+      >
+        Transfer
       </Button>
 
       <Dialog open={open} onClose={handleClose}>

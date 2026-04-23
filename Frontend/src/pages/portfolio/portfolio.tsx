@@ -46,6 +46,12 @@ const Portfolio: React.FC = () => {
   }
 };
 
+  const handleRenameSuccess = (id: number, newName: string) =>
+    setPortfolios(prev => prev.map(p => p.id === id ? { ...p, name: newName } : p));
+
+  const handleDeleteSuccess = (id: number) =>
+    setPortfolios(prev => prev.filter(p => p.id !== id));
+
 
   const loadPositions = async (id: number) => {
     const data = await PortfolioService.getPositions(id);
@@ -93,6 +99,8 @@ const Portfolio: React.FC = () => {
           setSelectedPortfolioId={setSelectedId}
           loadPositions={loadPositions}
           loading={loading}
+          onRenameSuccess={handleRenameSuccess}
+          onDeleteSuccess={handleDeleteSuccess}
         />
       </Box>
 
