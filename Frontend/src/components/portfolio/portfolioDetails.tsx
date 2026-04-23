@@ -11,7 +11,6 @@ interface Props {
   positions: PositionInfo[];
   user: UserInfo | null;
   setUser: (u: UserInfo | null) => void;
-  setError: (msg: string | null) => void;
   onUpdatePortfolio: (id: number, newBalance: number) => void;
   onTransferSuccess?: () => void;
 }
@@ -22,7 +21,6 @@ const PortfolioDetails: React.FC<Props> = ({
   positions,
   user,
   setUser,
-  setError,
   onUpdatePortfolio,
   onTransferSuccess
 }) => {
@@ -55,7 +53,6 @@ const PortfolioDetails: React.FC<Props> = ({
         positions={positions}
         user={user}
         setUser={setUser}
-        setError={setError}
         onUpdatePortfolio={(newBalance) => onUpdatePortfolio(portfolio.id, newBalance)}
         onTransferSuccess={onTransferSuccess}
       />

@@ -32,7 +32,6 @@ interface Props {
   positions: positionInfo[];
   user: UserInfo | null;
   setUser: (u: UserInfo | null) => void;
-  setError: (msg: string | null) => void;
   onUpdatePortfolio: (newBalance: number) => void;
   onTransferSuccess?: () => void;
 }
@@ -43,7 +42,6 @@ const TransferControls: React.FC<Props> = ({
   positions,
   user,
   setUser,
-  setError,
   onUpdatePortfolio,
   onTransferSuccess,
 }) => {
