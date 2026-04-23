@@ -3,9 +3,9 @@ from openai import OpenAI
 client = OpenAI()
 
 
-def get_ai_reply(content: str, ticker: str, previous_response_id: str | None = None) -> tuple[str, str]:
+def get_ai_reply(content: str, ticker: str, previous_response_id: str | None = None, model: str = "gpt-4o") -> tuple[str, str]:
     kwargs = dict(
-        model="gpt-4o",
+        model=model,
         instructions=(
             f"You are a financial advisor specializing in {ticker} stock. "
             f"The user is asking about {ticker} — keep all answers relevant to this stock. "

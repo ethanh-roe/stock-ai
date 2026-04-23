@@ -36,6 +36,7 @@ class SendMsg(BaseModel):
     conversation_id: int
     ticker: str
     content: str
+    model: str = "gpt-4o"
 
 
 class ConvoRename(BaseModel):

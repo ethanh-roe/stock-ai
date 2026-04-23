@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import { Box, Container, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import StockChatbot from "../../components/dashboard/stockChatBot";
 import StockNews from "../../components/dashboard/stockNews";
 import StockOrder from "../../components/dashboard/stockOrder";
 import StockProfile from "../../components/dashboard/stockProfile";
@@ -11,10 +10,11 @@ import StockAiAnalytics from "../../components/dashboard/stockAiAnalytics";
 import type { PortfolioInfo } from "../../types/portfolio";
 import portfolioService from "../../services/portfolioService";
 import { useLocation } from "react-router-dom";
+import { useTicker } from "../../context/TickerContext";
 
 
 const StockDashboard: React.FC = () => {
-  const [ticker, setTicker] = useState<string>("");
+  const { ticker, setTicker } = useTicker();
   const [livePrice, setLivePrice] = useState<number | undefined>(undefined);
   const [portfolios, setPortfolios] = useState<PortfolioInfo[]>([]);
   const [assetName, setAssetName] = useState<string>("");
@@ -34,7 +34,6 @@ const StockDashboard: React.FC = () => {
   useEffect(() => {
     portfolioService.listAll().then(setPortfolios);
   }, []);
-
 
   return (
     <Container maxWidth={false} sx={{ mt: 1.5, mb: 3, px: { xs: 2, md: 3 } }}>
@@ -73,14 +72,11 @@ const StockDashboard: React.FC = () => {
           </Grid>
 
           <Grid size={12}>
-            <StockChatbot ticker={ticker} />
-          </Grid>
-
-          <Grid size={12}>
             <StockNews ticker={ticker} />
           </Grid>
         </Grid>
       )}
+
     </Container>
   );
 };

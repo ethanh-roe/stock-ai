@@ -53,6 +53,33 @@ def rename_convo(
 
 
 @router.get(
+    "/conversation/latest",
+    response_model=chatModels.ConversationHistory,
+    summary="Gets the user's most recent conversation, creating one if none exists.",
+)
+def get_or_create_latest(
+    db: Session = Depends(get_db),
+    current_user=Depends(user_from_jwt),
+):
+    conversation = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == current_user.user_id)
+        .order_by(Conversation.created_at.desc())
+        .first()
+    )
+    if not conversation:
+        conversation = Conversation(user_id=current_user.user_id, title="My Conversation")
+        try:
+            db.add(conversation)
+            db.commit()
+            db.refresh(conversation)
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(status_code=400, detail="Problem creating conversation")
+    return conversation
+
+
+@router.get(
     "/conversation/{conversation_id}",
     response_model=chatModels.ConversationHistory,
     summary="Gets chat history for a given conversation.",
@@ -104,6 +131,7 @@ def send_message(
             content=msg.content,
             ticker=msg.ticker,
             previous_response_id=conversation.last_response_id,
+            model=msg.model,
         )
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"OpenAI request failed: {str(e)}")

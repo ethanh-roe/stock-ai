@@ -1,13 +1,22 @@
-import { Paper, Box, Typography, Chip, TextField, IconButton } from "@mui/material";
+import { Paper, Box, Typography, Chip, TextField, IconButton, Select, MenuItem, FormControl, Fab, Collapse, Badge } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useRef, useState } from "react";
 import {
   Send as SendIcon,
   AutoAwesome as SparkleIcon,
   Person as PersonIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import ReactMarkdown from "react-markdown";
 import api from "../../services/apiService.ts";
+
+const OPENAI_MODELS = [
+  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gpt-4o-mini", label: "GPT-4o mini" },
+  { value: "gpt-4.1", label: "GPT-4.1" },
+  { value: "gpt-4.1-mini", label: "GPT-4.1 mini" },
+  { value: "o4-mini", label: "o4-mini" },
+];
 
 const SUGGESTED_QUESTIONS = [
   "What does this company do?",
@@ -28,18 +37,42 @@ type StockChatbotProps = {
 
 const StockChatbot = ({ ticker }: StockChatbotProps) => {
   const theme = useTheme();
+  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState("gpt-4o");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasLoadedHistory = useRef(false);
 
   useEffect(() => {
-    setMessages([]);
-    setInput("");
-    setConversationId(null);
-  }, [ticker]);
+    if (!open || hasLoadedHistory.current) return;
+    hasLoadedHistory.current = true;
+
+    const loadHistory = async () => {
+      setIsLoadingHistory(true);
+      try {
+        const res = await api.get("/chat/conversation/latest");
+        const data = res.data;
+        setConversationId(data.id);
+        const loaded: ChatMessage[] = (data.messages ?? []).map((m: { role: string; content: string; created_at: string }) => ({
+          role: m.role === "USER" ? "user" : "assistant",
+          content: m.content,
+          timestamp: new Date(m.created_at),
+        }));
+        setMessages(loaded);
+      } catch {
+        // will create a new conversation on first send
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadHistory();
+  }, [open]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,6 +107,7 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
         conversation_id: convId,
         ticker,
         content: messageText,
+        model: selectedModel,
       });
 
       const assistantText: string =
@@ -109,15 +143,34 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
   const accentDark = "#3A55D4";
 
   return (
+    <Box
+      sx={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 1300,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: 1.5,
+      }}
+    >
+      <Collapse
+        in={open}
+        timeout={200}
+        unmountOnExit
+        sx={{ transformOrigin: "bottom right" }}
+      >
     <Paper
-      elevation={0}
+      elevation={6}
       sx={{
         borderRadius: 2.5,
         border: `1px solid ${theme.palette.divider}`,
         bgcolor: "background.paper",
         display: "flex",
         flexDirection: "column",
-        height: 480,
+        width: 400,
+        height: 520,
         overflow: "hidden",
       }}
     >
@@ -141,13 +194,59 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
             {ticker ? `Analyzing ${ticker}` : "Ask me anything about stocks"}
           </Typography>
         </Box>
-        <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#22c55e" }} />
-          <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 600 }}>Online</Typography>
+        <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
+          <FormControl size="small" variant="outlined">
+            <Select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              sx={{
+                fontSize: "0.72rem", fontWeight: 600, height: 26,
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: theme.palette.divider },
+                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: accent },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: accent },
+                "& .MuiSelect-select": { py: 0, px: 1, pr: "24px !important" },
+                color: "text.secondary",
+                borderRadius: 1.5,
+              }}
+            >
+              {OPENAI_MODELS.map((m) => (
+                <MenuItem key={m.value} value={m.value} sx={{ fontSize: "0.72rem", fontWeight: 600 }}>
+                  {m.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#22c55e" }} />
+            <Typography variant="caption" sx={{ color: "text.disabled", fontWeight: 600 }}>Online</Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setOpen(false)} sx={{ ml: 0.25, color: "text.disabled" }}>
+            <CloseIcon sx={{ fontSize: 16 }} />
+          </IconButton>
         </Box>
       </Box>
       <Box sx={{ flexGrow: 1, overflowY: "auto", px: 2.5, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-        {isEmpty ? (
+        {isLoadingHistory ? (
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+            <Box sx={{ display: "flex", gap: 0.5 }}>
+              {[0, 1, 2].map((i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    width: 8, height: 8, borderRadius: "50%",
+                    bgcolor: accent, opacity: 0.4,
+                    animation: "bounce 1.2s ease-in-out infinite",
+                    animationDelay: `${i * 0.2}s`,
+                    "@keyframes bounce": {
+                      "0%, 80%, 100%": { transform: "scale(0.8)", opacity: 0.4 },
+                      "40%": { transform: "scale(1.2)", opacity: 1 },
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+        ) : isEmpty ? (
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 2.5 }}>
             <Box sx={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, rgba(79,110,247,0.12) 0%, rgba(167,139,250,0.12) 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <SparkleIcon sx={{ fontSize: 28, color: accent }} />
@@ -385,6 +484,29 @@ const StockChatbot = ({ ticker }: StockChatbotProps) => {
         </IconButton>
       </Box>
     </Paper>
+      </Collapse>
+
+      <Badge
+        color="error"
+        variant="dot"
+        invisible={open || messages.length === 0}
+        overlap="circular"
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Fab
+          onClick={() => setOpen((prev) => !prev)}
+          sx={{
+            background: accentGradient,
+            color: "#fff",
+            boxShadow: "0 4px 20px rgba(79,110,247,0.4)",
+            "&:hover": { background: accentGradient, filter: "brightness(1.1)" },
+            transition: "all 0.2s",
+          }}
+        >
+          {open ? <CloseIcon /> : <SparkleIcon />}
+        </Fab>
+      </Badge>
+    </Box>
   );
 };
 

@@ -11,6 +11,21 @@ import Leagues from "./pages/leagues/leagues";
 import PortfolioPerformance from "./pages/portfolio/portfolioPerformance";
 import ProtectedRoute from "./components/protectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import { TickerProvider, useTicker } from "./context/TickerContext";
+import StockChatbot from "./components/dashboard/stockChatBot";
+
+const AuthenticatedLayout = () => {
+  const { ticker } = useTicker();
+  return (
+    <>
+      <NavBar />
+      <div className="min-h-screen">
+        <Outlet />
+      </div>
+      <StockChatbot ticker={ticker} />
+    </>
+  );
+};
 
 const router = createBrowserRouter([
   {
@@ -27,12 +42,9 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: (
-          <>
-            <NavBar />
-            <div className="min-h-screen">
-              <Outlet />
-            </div>
-          </>
+          <TickerProvider>
+            <AuthenticatedLayout />
+          </TickerProvider>
         ),
         children: [
           {
