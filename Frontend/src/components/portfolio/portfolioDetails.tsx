@@ -1,4 +1,5 @@
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Button, Divider, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import TransferControls from "./transferControls";
 import PortfolioPositions from "./portfolioPositions";
 import type { UserInfo } from "../../types/auth";
@@ -20,17 +21,26 @@ const PortfolioDetails: React.FC<Props> = ({
   setUser,
   setError,
   onUpdatePortfolio
-}) => (
+}) => {
+  const navigate = useNavigate();
+  return (
   <Box sx={{ p: 2 }}>
 
-    <Box sx={{ mb: 2 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700 }}>
-        {portfolio.name}
-      </Typography>
-
-      <Typography variant="h4" sx={{ color: "text.secondary" }}>
-        ${Number(portfolio.cash_balance).toFixed(2)}
-      </Typography>
+    <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
+      <Box>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          {portfolio.name}
+        </Typography>
+        <Typography variant="h4" sx={{ color: "text.secondary" }}>
+          ${Number(portfolio.cash_balance).toFixed(2)}
+        </Typography>
+      </Box>
+      <Button
+        variant="outlined"
+        onClick={() => navigate(`/portfolio/${portfolio.id}/performance`)}
+      >
+        Performance
+      </Button>
     </Box>
 
     <Box sx={{ display: "flex", justifyContent: "flex", alignItems: "center", gap: 2, mb: 2 }}>
@@ -50,6 +60,7 @@ const PortfolioDetails: React.FC<Props> = ({
 
     <PortfolioPositions positions={positions} selectedPortfolioId={portfolio.id} />
   </Box>
-);
+  );
+};
 
 export default PortfolioDetails;

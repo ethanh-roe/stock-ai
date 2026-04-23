@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional, Dict, List
 
 
 class PortfolioCreate(BaseModel):
@@ -53,3 +54,42 @@ class Position_Transfer(BaseModel):
     to_portfolio_id: int
     ticker: str
     quantity: int
+
+
+# -------------------------
+# Snapshot / Activity models
+# -------------------------
+
+class SnapshotPoint(BaseModel):
+    recorded_at: datetime
+    total_value: Decimal
+
+
+class PositionSnapshotPoint(BaseModel):
+    recorded_at: datetime
+    market_value: Decimal
+
+
+class SnapshotSummary(BaseModel):
+    current_value: Decimal
+    period_return_dollars: Optional[Decimal]
+    period_return_pct: Optional[Decimal]
+    all_time_high: Optional[Decimal]
+    pct_below_ath: Optional[Decimal]
+    cash_balance: Decimal
+    cash_pct: Optional[Decimal]
+
+
+class SnapshotResponse(BaseModel):
+    snapshots: List[SnapshotPoint]
+    breakdown: Optional[Dict[str, List[PositionSnapshotPoint]]]
+    summary: SnapshotSummary
+
+
+class ActivityItem(BaseModel):
+    trade_id: int
+    ticker: str
+    trade_type: str
+    quantity: Decimal
+    price: Decimal
+    executed_at: datetime

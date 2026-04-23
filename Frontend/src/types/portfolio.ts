@@ -29,3 +29,38 @@ export interface PositionInfo {
     total_value: number;
     unrealized_gain: number;
 }
+
+export interface SnapshotPoint {
+    recorded_at: string;
+    total_value: number;
+}
+
+export interface PositionSnapshotPoint {
+    recorded_at: string;
+    market_value: number;
+}
+
+export interface SnapshotSummary {
+    current_value: number;
+    period_return_dollars: number | null;
+    period_return_pct: number | null;
+    all_time_high: number | null;
+    pct_below_ath: number | null;
+    cash_balance: number;
+    cash_pct: number | null;
+}
+
+export interface SnapshotResponse {
+    snapshots: SnapshotPoint[];
+    breakdown: Record<string, PositionSnapshotPoint[]> | null;
+    summary: SnapshotSummary;
+}
+
+export interface ActivityItem {
+    trade_id: number;
+    ticker: string;
+    trade_type: "BUY" | "SELL";
+    quantity: number;
+    price: number;
+    executed_at: string;
+}

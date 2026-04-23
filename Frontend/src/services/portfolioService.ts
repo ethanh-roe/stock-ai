@@ -1,5 +1,5 @@
 import api from "../types/api";
-import type { PortfolioInfo, PortfolioCreateRequest, CashTransferResponse, CashTransferRequest, PositionInfo } from "../types/portfolio";
+import type { PortfolioInfo, PortfolioCreateRequest, CashTransferResponse, CashTransferRequest, PositionInfo, SnapshotResponse, ActivityItem } from "../types/portfolio";
 
 class PortfolioService {
     async listAll(): Promise<PortfolioInfo[]> {
@@ -24,6 +24,18 @@ class PortfolioService {
 
     async cashOut(xfer: CashTransferRequest): Promise<CashTransferResponse> {
         const { data } = await api.put<CashTransferResponse>("/portfolios/cash_out", xfer);
+        return data;
+    }
+
+    async getSnapshots(portfolioId: number, range?: string | null, breakdown = false): Promise<SnapshotResponse> {
+        const params: Record<string, string | boolean> = { breakdown };
+        if (range) params.range = range;
+        const { data } = await api.get<SnapshotResponse>(`/portfolios/${portfolioId}/snapshots`, { params });
+        return data;
+    }
+
+    async getActivity(portfolioId: number, limit = 10): Promise<ActivityItem[]> {
+        const { data } = await api.get<ActivityItem[]>(`/portfolios/${portfolioId}/activity`, { params: { limit } });
         return data;
     }
 }

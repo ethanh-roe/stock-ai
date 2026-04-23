@@ -1,13 +1,16 @@
 from app.models import portfolioModels
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select
+from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, APIRouter, status
+from fastapi import Depends, HTTPException, APIRouter, status, Query
 from app.security import user_from_jwt
 from app.schema import (
     Portfolio,
     Position,
+    PortfolioSnapshot,
+    PositionSnapshot,
     Ticker,
     User,
     LeagueMember,
@@ -20,7 +23,7 @@ from app.schema import (
 from app.database import get_db
 import yfinance as yf
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
 
@@ -599,3 +602,159 @@ def position_transfer(
         request.ticker,
         request.quantity,
     )
+
+
+_RANGE_MAP = {
+    "1W": timedelta(weeks=1),
+    "1M": timedelta(days=30),
+    "3M": timedelta(days=90),
+    "1Y": timedelta(days=365),
+}
+
+
+@router.get(
+    "/{portfolio_id}/snapshots",
+    response_model=portfolioModels.SnapshotResponse,
+    summary="Get portfolio performance snapshots",
+    description="Returns time-series portfolio value snapshots. Optional range filter: 1W, 1M, 3M, 1Y (omit for all time). Set breakdown=true to include per-ticker lines.",
+)
+def get_snapshots(
+    portfolio_id: int,
+    range_param: Optional[str] = Query(None, alias="range", description="1W | 1M | 3M | 1Y"),
+    breakdown: bool = Query(False),
+    current_user=Depends(user_from_jwt),
+    db: Session = Depends(get_db),
+):
+    portfolio = (
+        db.query(Portfolio)
+        .filter(
+            Portfolio.id == portfolio_id,
+            Portfolio.user_id == current_user.user_id,
+            Portfolio.deleted_at.is_(None),
+        )
+        .first()
+    )
+    if not portfolio:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found or not owned by user.")
+
+    if range_param is not None and range_param not in _RANGE_MAP:
+        raise HTTPException(status_code=400, detail="Invalid range. Must be 1W, 1M, 3M, or 1Y.")
+
+    # Fetch snapshots for this portfolio in the requested range
+    q = db.query(PortfolioSnapshot).filter(PortfolioSnapshot.portfolio_id == portfolio_id)
+    if range_param:
+        cutoff = datetime.utcnow() - _RANGE_MAP[range_param]
+        q = q.filter(PortfolioSnapshot.recorded_at >= cutoff)
+    snapshots = q.order_by(PortfolioSnapshot.recorded_at).all()
+
+    # All-time high across all snapshots (independent of range filter)
+    ath = db.query(func.max(PortfolioSnapshot.total_value)).filter(
+        PortfolioSnapshot.portfolio_id == portfolio_id
+    ).scalar()
+
+    # Current value: latest snapshot total, or cash balance if no snapshots yet
+    current_value = snapshots[-1].total_value if snapshots else portfolio.cash_balance
+
+    # Period return relative to the first snapshot in the selected range
+    period_return_dollars = None
+    period_return_pct = None
+    if snapshots:
+        range_start = snapshots[0].total_value
+        period_return_dollars = current_value - range_start
+        if range_start != 0:
+            period_return_pct = (period_return_dollars / range_start) * Decimal("100")
+
+    # % below all-time high (negative means below ATH)
+    pct_below_ath = None
+    if ath and ath != 0:
+        pct_below_ath = ((current_value - ath) / ath) * Decimal("100")
+
+    # Cash as % of portfolio
+    cash_pct = None
+    if current_value and current_value != 0:
+        cash_pct = (portfolio.cash_balance / current_value) * Decimal("100")
+
+    summary = portfolioModels.SnapshotSummary(
+        current_value=current_value,
+        period_return_dollars=period_return_dollars,
+        period_return_pct=period_return_pct,
+        all_time_high=ath,
+        pct_below_ath=pct_below_ath,
+        cash_balance=portfolio.cash_balance,
+        cash_pct=cash_pct,
+    )
+
+    # Per-ticker breakdown lines (only when requested and snapshots exist)
+    breakdown_map = None
+    if breakdown and snapshots:
+        snapshot_ids = [s.id for s in snapshots]
+        pos_rows = (
+            db.query(PositionSnapshot, Ticker)
+            .join(Ticker, PositionSnapshot.ticker_id == Ticker.id)
+            .filter(PositionSnapshot.portfolio_snapshot_id.in_(snapshot_ids))
+            .order_by(PositionSnapshot.recorded_at)
+            .all()
+        )
+        breakdown_map = {}
+        for ps, ticker in pos_rows:
+            breakdown_map.setdefault(ticker.symbol, []).append(
+                portfolioModels.PositionSnapshotPoint(
+                    recorded_at=ps.recorded_at,
+                    market_value=ps.market_value,
+                )
+            )
+
+    return portfolioModels.SnapshotResponse(
+        snapshots=[
+            portfolioModels.SnapshotPoint(recorded_at=s.recorded_at, total_value=s.total_value)
+            for s in snapshots
+        ],
+        breakdown=breakdown_map,
+        summary=summary,
+    )
+
+
+@router.get(
+    "/{portfolio_id}/activity",
+    response_model=List[portfolioModels.ActivityItem],
+    summary="Get recent portfolio activity",
+    description="Returns the most recent trades for a portfolio, newest first. Default limit 10, max 100.",
+)
+def get_activity(
+    portfolio_id: int,
+    limit: int = Query(10, ge=1, le=100),
+    current_user=Depends(user_from_jwt),
+    db: Session = Depends(get_db),
+):
+    portfolio = (
+        db.query(Portfolio)
+        .filter(
+            Portfolio.id == portfolio_id,
+            Portfolio.user_id == current_user.user_id,
+            Portfolio.deleted_at.is_(None),
+        )
+        .first()
+    )
+    if not portfolio:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found or not owned by user.")
+
+    results = (
+        db.query(Trade, Ticker)
+        .join(Ticker, Trade.ticker_id == Ticker.id)
+        .filter(Trade.portfolio_id == portfolio_id)
+        .order_by(Trade.executed_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        portfolioModels.ActivityItem(
+            trade_id=trade.id,
+            ticker=ticker.symbol,
+            trade_type=trade.trade_type.value,
+            quantity=trade.quantity,
+            price=trade.price,
+            executed_at=trade.executed_at,
+        )
+        for trade, ticker in results
+    ]

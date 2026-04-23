@@ -107,6 +107,11 @@ class Portfolio(Base):
     league_memberships: Mapped[List["LeagueMember"]] = relationship(
         back_populates="portfolio",
     )
+    snapshots: Mapped[List["PortfolioSnapshot"]] = relationship(
+        back_populates="portfolio",
+        cascade="all, delete-orphan",
+        foreign_keys="PortfolioSnapshot.portfolio_id",
+    )
 
 
 # -------------------------
@@ -121,6 +126,9 @@ class Ticker(Base):
 
     trades: Mapped[List["Trade"]] = relationship(back_populates="ticker")
     positions: Mapped[List["Position"]] = relationship(back_populates="ticker")
+    position_snapshots: Mapped[List["PositionSnapshot"]] = relationship(
+        back_populates="ticker"
+    )
 
 
 # -------------------------
@@ -309,6 +317,7 @@ class LeagueMember(Base):
     snapshots: Mapped[List["PortfolioSnapshot"]] = relationship(
         back_populates="league_member",
         cascade="all, delete-orphan",
+        single_parent=True,
     )
 
 
@@ -319,18 +328,68 @@ class PortfolioSnapshot(Base):
     __tablename__ = "portfolio_snapshots"
 
     id: Mapped[int] = Column(BigInteger, primary_key=True)
-    league_member_id: Mapped[int] = mapped_column(
+    league_member_id: Mapped[Optional[int]] = mapped_column(
         BigInteger,
         ForeignKey("league_members.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+    )
+    portfolio_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        ForeignKey("portfolios.id", ondelete="CASCADE"),
+        nullable=True,
     )
     snapshot_type = Column(Enum(SnapshotType), nullable=False)
     total_value = Column(Numeric(15, 2), nullable=False)
+    cash_balance = Column(Numeric(15, 2), nullable=False)
     recorded_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
 
     __table_args__ = (
+        CheckConstraint(
+            "(league_member_id IS NOT NULL AND portfolio_id IS NULL) OR "
+            "(league_member_id IS NULL AND portfolio_id IS NOT NULL)",
+            name="chk_snapshot_owner",
+        ),
+        UniqueConstraint("portfolio_id", "recorded_at", name="uix_portfolio_snapshot_time"),
         Index("idx_snapshots_member", "league_member_id"),
         Index("idx_snapshots_member_type", "league_member_id", "snapshot_type"),
+        Index("idx_snapshots_portfolio", "portfolio_id"),
     )
 
-    league_member: Mapped["LeagueMember"] = relationship(back_populates="snapshots")
+    league_member: Mapped[Optional["LeagueMember"]] = relationship(back_populates="snapshots")
+    portfolio: Mapped[Optional["Portfolio"]] = relationship(
+        back_populates="snapshots",
+        foreign_keys=[portfolio_id],
+    )
+    position_snapshots: Mapped[List["PositionSnapshot"]] = relationship(
+        back_populates="portfolio_snapshot",
+        cascade="all, delete-orphan",
+    )
+
+
+# -------------------------
+# PositionSnapshot  (per-ticker value at snapshot time)
+# -------------------------
+class PositionSnapshot(Base):
+    __tablename__ = "position_snapshots"
+
+    id: Mapped[int] = Column(BigInteger, primary_key=True)
+    portfolio_snapshot_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("portfolio_snapshots.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    ticker_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("tickers.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    market_value = Column(Numeric(15, 2), nullable=False)
+    recorded_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("portfolio_snapshot_id", "ticker_id", name="uix_position_snapshot_ticker"),
+        Index("idx_position_snapshots_snapshot", "portfolio_snapshot_id"),
+    )
+
+    portfolio_snapshot: Mapped["PortfolioSnapshot"] = relationship(back_populates="position_snapshots")
+    ticker: Mapped["Ticker"] = relationship(back_populates="position_snapshots")
