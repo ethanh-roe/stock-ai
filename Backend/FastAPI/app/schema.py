@@ -54,6 +54,9 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     cash_balance = Column(Numeric(15, 2), nullable=False, default=0)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    
+    # For soft account deletion
+    deleted_at = Column(TIMESTAMP, nullable=True, default=None)
 
     portfolios: Mapped[List["Portfolio"]] = relationship(
         back_populates="user",

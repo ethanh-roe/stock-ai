@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from decimal import Decimal
@@ -21,6 +22,17 @@ class UserInfo(BaseModel):
 # Login Request model
 class UserLogin(BaseModel):
     username: str  # username OR email associated with account
+    password: str
+
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    new_password: Optional[str] = None
+    current_password: Optional[str] = None
+
+
+class UserDeleteRequest(BaseModel):
     password: str
 
 

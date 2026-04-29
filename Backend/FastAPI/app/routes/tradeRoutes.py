@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter, status
-from app.security import user_from_jwt
+from app.routes.userRoutes import get_current_active_user
 from app.schema import Ticker, Portfolio, Position, Trade, TradeType
 from app.database import get_db
 from decimal import Decimal
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/trades", tags=["trades"])
 )
 def newTrade(
     request: tradeModels.TradeRequest,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     with db.begin():  # atomic transaction
@@ -47,7 +47,7 @@ def newTrade(
             db.query(Portfolio)
             .filter(
                 Portfolio.id == request.portfolio_id,
-                Portfolio.user_id == current_user.user_id,
+                Portfolio.user_id == user.id,
             )
             .with_for_update()
             .first()
@@ -173,7 +173,7 @@ def newTrade(
 def get_tradeHistory(
     portfolio_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(user_from_jwt)
+    user=Depends(get_current_active_user)
 ):
     # Verify existence & ownership of portfolio
     portfolio = (
@@ -185,7 +185,7 @@ def get_tradeHistory(
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
     
-    if portfolio.user_id != current_user.user_id:
+    if portfolio.user_id != user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     # Fetch all trades associated with protfolio

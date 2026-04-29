@@ -1,7 +1,4 @@
-from fastapi import Depends, HTTPException, APIRouter, status
-from app.security import user_from_jwt
-from app.schema import Portfolio, Position, Ticker, User
-from app.database import get_db
+from fastapi import APIRouter
 from app.agents.analysisAgent import run_analysis
 from pydantic import BaseModel
 

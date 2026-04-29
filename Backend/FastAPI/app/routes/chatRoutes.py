@@ -2,7 +2,7 @@ from app.models import chatModels
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter
-from app.security import user_from_jwt
+from app.routes.userRoutes import get_current_active_user
 from app.schema import Conversation, Message, MessageType
 from app.database import get_db
 from app.agents.chatBot import get_ai_reply
@@ -16,9 +16,9 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 )
 def create_conversation(
     db: Session = Depends(get_db),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
 ):
-    new_conv = Conversation(user_id=current_user.user_id, title="New Conversation")
+    new_conv = Conversation(user_id=user.id, title="New Conversation")
     try:
         db.add(new_conv)
         db.commit()
@@ -37,11 +37,11 @@ def create_conversation(
 def rename_convo(
     request: chatModels.ConvoRename,
     db: Session = Depends(get_db),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
 ):
     convo = (
         db.query(Conversation)
-        .filter(Conversation.id == request.id, Conversation.user_id == current_user.user_id)
+        .filter(Conversation.id == request.id, Conversation.user_id == user.id)
         .first()
     )
     if not convo:
@@ -59,16 +59,16 @@ def rename_convo(
 )
 def get_or_create_latest(
     db: Session = Depends(get_db),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
 ):
     conversation = (
         db.query(Conversation)
-        .filter(Conversation.user_id == current_user.user_id)
+        .filter(Conversation.user_id == user.id)
         .order_by(Conversation.created_at.desc())
         .first()
     )
     if not conversation:
-        conversation = Conversation(user_id=current_user.user_id, title="My Conversation")
+        conversation = Conversation(user_id=user.id, title="My Conversation")
         try:
             db.add(conversation)
             db.commit()
@@ -87,11 +87,11 @@ def get_or_create_latest(
 def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
 ):
     conversation = (
         db.query(Conversation)
-        .filter(Conversation.id == conversation_id, Conversation.user_id == current_user.user_id)
+        .filter(Conversation.id == conversation_id, Conversation.user_id == user.id)
         .first()
     )
     if not conversation:
@@ -107,11 +107,11 @@ def get_conversation(
 def send_message(
     msg: chatModels.SendMsg,
     db: Session = Depends(get_db),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
 ):
     conversation = (
         db.query(Conversation)
-        .filter(Conversation.id == msg.conversation_id, Conversation.user_id == current_user.user_id)
+        .filter(Conversation.id == msg.conversation_id, Conversation.user_id == user.id)
         .first()
     )
     if not conversation:

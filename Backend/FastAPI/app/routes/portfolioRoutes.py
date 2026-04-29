@@ -5,7 +5,6 @@ from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter, status, Query
-from app.security import user_from_jwt
 from app.schema import (
     Portfolio,
     Position,
@@ -20,6 +19,7 @@ from app.schema import (
     Trade,
     TradeType,
 )
+from app.routes.userRoutes import get_current_active_user
 from app.database import get_db
 import yfinance as yf
 from decimal import Decimal
@@ -176,15 +176,9 @@ def position_transfer_service(
 )
 def portfolio_createnew(
     portfolio_in: portfolioModels.PortfolioCreate,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    user_id = current_user.user_id
-
-    # Lock users to prevent race conditions
-    user = db.execute(
-        select(User).where(User.id == user_id).with_for_update()
-    ).scalar_one()
 
     # Prevent negative initial balances (No infinite money please)
     if portfolio_in.initial_balance < 0:
@@ -204,7 +198,7 @@ def portfolio_createnew(
 
     # Create Portfolio
     new_portfolio = Portfolio(
-        user_id=user_id,
+        user_id=user.id,
         name=portfolio_in.name,
         cash_balance=portfolio_in.initial_balance,
     )
@@ -235,7 +229,7 @@ def portfolio_createnew(
 )
 def portfolio_rename(
     request: portfolioModels.Portfolio_rename,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     # fetch portfolio
@@ -243,7 +237,7 @@ def portfolio_rename(
         db.query(Portfolio)
         .filter(
             Portfolio.id == request.portfolio_id,
-            Portfolio.user_id == current_user.user_id,
+            Portfolio.user_id == user.id,
             Portfolio.deleted_at.is_(None),
         )
         .first()
@@ -281,13 +275,13 @@ def portfolio_rename(
 )
 def portfolio_delete(
     portfolio_id: int,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     # First find and grab portfolio
     portfolio = (
         db.query(Portfolio)
-        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == current_user.user_id)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
         .first()
     )
     if not portfolio:
@@ -343,9 +337,9 @@ def portfolio_delete(
     description="Requires JWT authorization header. Returns list of portfolios, including their name, id, and creation date.",
 )
 def portfolio_listall(
-    current_user=Depends(user_from_jwt), db: Session = Depends(get_db)
+    user=Depends(get_current_active_user), db: Session = Depends(get_db)
 ):
-    user_id = current_user.user_id
+    user_id = user.id
 
     portfolios = (
         db.query(Portfolio)
@@ -364,7 +358,7 @@ def portfolio_listall(
 )
 def get_positions(
     portfolio_id: int,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     # -------------------------
@@ -372,7 +366,7 @@ def get_positions(
     # -------------------------
     portfolio = (
         db.query(Portfolio)
-        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == current_user.user_id)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
         .first()
     )
 
@@ -449,16 +443,11 @@ def get_positions(
 )
 def portfolio_cash_in(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    user_id = current_user.user_id
+    user_id = user.id
     portfolio_id = xfer_info.portfolio_id
-
-    # Grab User
-    user = db.execute(
-        select(User).where(User.id == user_id).with_for_update()
-    ).scalar_one()
 
     # Prevent negative xfer amount balances (No infinite money please)
     if xfer_info.xfer_amount < 0:
@@ -520,16 +509,11 @@ def portfolio_cash_in(
 )
 def portfolio_cash_out(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    user_id = current_user.user_id
+    user_id = user.id
     portfolio_id = xfer_info.portfolio_id
-
-    # Grab User
-    user = db.execute(
-        select(User).where(User.id == user_id).with_for_update()
-    ).scalar_one()
 
     # Prevent negative xfer amount balances
     if xfer_info.xfer_amount < 0:
@@ -592,11 +576,11 @@ def portfolio_cash_out(
 def position_transfer(
     request: portfolioModels.Position_Transfer,
     db: Session = Depends(get_db),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
 ):
     return position_transfer_service(
         db,
-        current_user.user_id,
+        user.id,
         request.from_portfolio_id,
         request.to_portfolio_id,
         request.ticker,
@@ -622,14 +606,14 @@ def get_snapshots(
     portfolio_id: int,
     range_param: Optional[str] = Query(None, alias="range", description="1W | 1M | 3M | 1Y"),
     breakdown: bool = Query(False),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     portfolio = (
         db.query(Portfolio)
         .filter(
             Portfolio.id == portfolio_id,
-            Portfolio.user_id == current_user.user_id,
+            Portfolio.user_id == user.id,
             Portfolio.deleted_at.is_(None),
         )
         .first()
@@ -723,14 +707,14 @@ def get_snapshots(
 def get_activity(
     portfolio_id: int,
     limit: int = Query(10, ge=1, le=100),
-    current_user=Depends(user_from_jwt),
+    user=Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     portfolio = (
         db.query(Portfolio)
         .filter(
             Portfolio.id == portfolio_id,
-            Portfolio.user_id == current_user.user_id,
+            Portfolio.user_id == user.id,
             Portfolio.deleted_at.is_(None),
         )
         .first()

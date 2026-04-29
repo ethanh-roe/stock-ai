@@ -3,6 +3,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter
+from datetime import datetime
 from app.security import (
     hash_password,
     verify_password,
@@ -13,6 +14,24 @@ import app.schema as schema
 from app.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+# Helper method to grab a user
+def get_current_active_user(
+    db: Session = Depends(get_db),
+    token_data=Depends(user_from_jwt),
+):
+    user = db.query(schema.User).filter(
+        schema.User.id == token_data.user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.deleted_at is not None:
+        raise HTTPException(status_code=401, detail="Account is deactivated")
+
+    return user
 
 
 @router.post(
@@ -64,13 +83,7 @@ def create_user(user: userModels.UserCreate, db: Session = Depends(get_db)):
     summary="Return basic information about user.",
     description="Requires valid JWT.",
 )
-def get_user_info(db: Session = Depends(get_db), current_user=Depends(user_from_jwt)):
-    user_id = current_user.user_id
-    user = db.query(schema.User).filter(schema.User.id == user_id).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
+def get_user_info(db: Session = Depends(get_db), user=Depends(get_current_active_user)):
     return userModels.UserInfo(
         id=user.id,
         username=user.username,
@@ -122,3 +135,79 @@ def login(request: userModels.UserLogin, db: Session = Depends(get_db)):
 )
 def protected_route(current_user=Depends(user_from_jwt)):
     return current_user
+
+
+@router.patch(
+    "/update",
+    response_model=userModels.UserInfo,
+    summary="Update user credentials",
+    description="Allows updating username, email, and/or password. Requires JWT. Password change requires current password.",
+)
+def update_user(
+    updates: userModels.UserUpdate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_active_user),
+):
+
+    if not any([updates.username, updates.email, updates.new_password]):
+        raise HTTPException(status_code=400, detail="No updates provided")
+    
+    # --- Username update ---
+    if updates.username:
+        user.username = updates.username
+
+    # --- Email update ---
+    if updates.email:
+        user.email = updates.email
+
+    # --- Password update ---
+    if updates.new_password:
+        if not updates.current_password:
+            raise HTTPException(
+                status_code=400,
+                detail="Current password required to set a new password",
+            )
+
+        if not verify_password(updates.current_password, user.password_hash):
+            raise HTTPException(status_code=401, detail="Incorrect current password")
+
+        user.password_hash = hash_password(updates.new_password)
+
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError as e:
+        db.rollback()
+        if "username" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Username already taken")
+        elif "email" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Email already registered")
+        else:
+            raise HTTPException(status_code=400, detail="Update failed due to constraint violation")
+
+    return userModels.UserInfo(
+        id=user.id,
+        username=user.username,
+        created_at=user.created_at,
+        cash_balance=user.cash_balance,
+    )
+    
+    
+@router.delete(
+    "/delete",
+    summary="Delete user account",
+    description="Deletes the given user. Requires resumbission of password.",
+)
+def delete_user(
+    request: userModels.UserDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_active_user),
+):
+    if not verify_password(request.password, current_user.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect password")
+
+    current_user.deleted_at = datetime.utcnow()
+
+    db.commit()
+    
+    return {"message": "User deleted successfully"}
