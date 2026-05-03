@@ -10,6 +10,8 @@ import { Link as RouterLink } from "react-router-dom";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import { useUser } from "../../hooks/useUser";
 import { useAuth } from "../../hooks/useAuth";
+import UserMenu from "../../components/navbar/userMenu"
+
 
 const NavBar: React.FC = () => {
   const { logout } = useAuth();
@@ -115,27 +117,7 @@ const NavBar: React.FC = () => {
               Balance: ${Number(user?.cash_balance).toFixed(2)}
             </Typography>
 
-            <Button
-              component={RouterLink}
-              to="/login"
-              onClick={logout}
-              variant="outlined"
-              sx={{
-                fontFamily: "'Inter', sans-serif",
-                textTransform: "none",
-                fontSize: "0.95rem",
-                borderRadius: "50px",
-                color: "#e8ddd0",
-                borderColor: "#e8ddd0",
-                "&:hover": {
-                  backgroundColor: "transparent",
-                  borderColor: "#f5f0e8",
-                  color: "#f5f0e8",
-                },
-              }}
-            >
-              Logout
-            </Button>
+            <UserMenu user={user} logout={logout} />
           </Box>
         </Toolbar>
       </Container>
