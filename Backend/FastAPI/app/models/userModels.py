@@ -15,6 +15,7 @@ class UserCreate(BaseModel):
 class UserInfo(BaseModel):
     id: int
     username: str
+    email: EmailStr
     created_at: datetime
     cash_balance: Decimal
 

@@ -70,6 +70,7 @@ def create_user(user: userModels.UserCreate, db: Session = Depends(get_db)):
     response = userModels.UserInfo(
         id=new_user.id,
         username=new_user.username,
+        email=new_user.email,
         created_at=new_user.created_at,
         cash_balance=new_user.cash_balance,
     )
@@ -87,6 +88,7 @@ def get_user_info(db: Session = Depends(get_db), user=Depends(get_current_active
     return userModels.UserInfo(
         id=user.id,
         username=user.username,
+        email=user.email,
         created_at=user.created_at,
         cash_balance=user.cash_balance,
     )
@@ -188,6 +190,7 @@ def update_user(
     return userModels.UserInfo(
         id=user.id,
         username=user.username,
+        email=user.email,
         created_at=user.created_at,
         cash_balance=user.cash_balance,
     )
