@@ -1,6 +1,7 @@
 stages:
   - fastapibuild
   - reactbuild
+  - cron
 
 fastapi-build:            
   stage: fastapibuild
@@ -8,6 +9,7 @@ fastapi-build:
     - main_backend
   script:
     - cd Backend/FastAPI
+    - echo "CRON_SECRET=${CRON_SECRET}" >> .env
     - sudo systemctl stop stock-ai-backend.service || true
     - sudo systemctl disable stock-ai-backend.service || true
     - sudo rm /etc/systemd/system/stock-ai-backend.service || true
@@ -27,7 +29,7 @@ fastapi-build:
     changes: 
       - Backend/**/*
 
-react-build:            
+react-build:
   stage: reactbuild
   tags:
     - main_backend
@@ -40,5 +42,16 @@ react-build:
   only:
     refs:
       - main
-    changes: 
+    changes:
       - Frontend/**/*
+
+daily-snapshots:
+  stage: cron
+  tags:
+    - main_backend
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  script:
+    - |
+      curl -f -X POST "${API_BASE_URL}/internal/snapshots/daily" \
+        -H "x-cron-secret: ${CRON_SECRET}"

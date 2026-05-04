@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db, create_tables
 import app.schema as schema
-from app.routes import stockRoutes, userRoutes, wsRoutes, portfolioRoutes, tradeRoutes, chatRoutes, analysisRoutes, leagueRoutes
+from app.routes import stockRoutes, userRoutes, wsRoutes, portfolioRoutes, tradeRoutes, chatRoutes, analysisRoutes, leagueRoutes, internalRoutes
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -20,6 +20,7 @@ app.include_router(tradeRoutes.router)
 app.include_router(chatRoutes.router)
 app.include_router(analysisRoutes.router)
 app.include_router(leagueRoutes.router)
+app.include_router(internalRoutes.router)
 create_tables() 
 
 origins = [

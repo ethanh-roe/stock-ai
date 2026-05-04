@@ -42,7 +42,6 @@ const TransferControls: React.FC<Props> = ({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"deposit" | "withdraw">("deposit");
   const [amount, setAmount] = useState("");
-  // const [dialogError, setDialogError] = useState<string | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferTicker, setTransferTicker] = useState<string | null>(null);
   const [transferToId, setTransferToId] = useState<number | "">("");
