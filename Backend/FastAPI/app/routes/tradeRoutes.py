@@ -4,10 +4,21 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter, status
-from app.routes.userRoutes import get_current_active_user
+from app.security import user_from_jwt
 from app.schema import Ticker, Portfolio, Position, Trade, TradeType
 from app.database import get_db
 from decimal import Decimal
+
+"""
+Note:
+    Authentication for these routes is using 'user_from_jwt' instead of 'get_current_active_user'.
+    The former just extracts the raw user info (user_id) from the JWT, while the latter
+    actually queries to get the User object.
+    I at one point had redone this to use the latter, but it broke some DB queries, so I have 
+    reverted this file to the version that uses the former.
+    
+    Sorry for the inconsistency.
+"""
 
 
 router = APIRouter(prefix="/trades", tags=["trades"])
@@ -22,7 +33,7 @@ router = APIRouter(prefix="/trades", tags=["trades"])
 )
 def newTrade(
     request: tradeModels.TradeRequest,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     with db.begin():  # atomic transaction
@@ -47,7 +58,7 @@ def newTrade(
             db.query(Portfolio)
             .filter(
                 Portfolio.id == request.portfolio_id,
-                Portfolio.user_id == user.id,
+                Portfolio.user_id == current_user.user_id,
             )
             .with_for_update()
             .first()
@@ -168,26 +179,22 @@ def newTrade(
     "/{portfolio_id}/history",
     response_model=list[tradeModels.TradeInfo],
     summary="Returns list of trades performed for given portfolio",
-    description="Returns all trades belonging to a portfolio. Requires ownership of the portfolio."
+    description="Returns all trades belonging to a portfolio. Requires ownership of the portfolio.",
 )
 def get_tradeHistory(
     portfolio_id: int,
     db: Session = Depends(get_db),
-    user=Depends(get_current_active_user)
+    current_user=Depends(user_from_jwt),
 ):
     # Verify existence & ownership of portfolio
-    portfolio = (
-        db.query(Portfolio)
-        .filter(Portfolio.id == portfolio_id)
-        .first()
-    )
-    
+    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
-    
-    if portfolio.user_id != user.id:
+
+    if portfolio.user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
-    
+
     # Fetch all trades associated with protfolio
     trades = (
         db.query(Trade)
@@ -195,7 +202,7 @@ def get_tradeHistory(
         .order_by(Trade.executed_at.desc())
         .all()
     )
-    
+
     # Convert returned Trade objects into more convenient data
     response = []
     for t in trades:
@@ -205,7 +212,7 @@ def get_tradeHistory(
                 quantity=t.quantity,
                 price=t.price,
                 type=t.trade_type,
-                executed_at=t.executed_at
+                executed_at=t.executed_at,
             )
         )
 

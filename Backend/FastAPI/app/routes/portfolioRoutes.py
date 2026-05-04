@@ -26,14 +26,14 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 
 """
-I want to make note of something in this file:
-    Authentication is using 'user_from_jwt' instead of 'get_current_active_user'.
+Note:
+    Authentication for these routes is using 'user_from_jwt' instead of 'get_current_active_user'.
     The former just extracts the raw user info (user_id) from the JWT, while the latter
     actually queries to get the User object.
     I at one point had redone this to use the latter, but it broke some DB queries, so I have 
     reverted this file to the version that uses the former.
     
-    Sorry that it's a bit inconsistent here.
+    Sorry for the inconsistency.
 """
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])

@@ -21,7 +21,19 @@ from app.schema import (
     Ticker,
     User,
 )
-from app.routes.userRoutes import get_current_active_user
+from app.security import user_from_jwt
+
+"""
+Note:
+    Authentication for these routes is using 'user_from_jwt' instead of 'get_current_active_user'.
+    The former just extracts the raw user info (user_id) from the JWT, while the latter
+    actually queries to get the User object.
+    I at one point had redone this to use the latter, but it broke some DB queries, so I have 
+    reverted this file to the version that uses the former.
+    
+    Sorry for the inconsistency.
+"""
+
 
 router = APIRouter(prefix="/leagues", tags=["leagues"])
 
@@ -29,6 +41,7 @@ router = APIRouter(prefix="/leagues", tags=["leagues"])
 # -------------------------
 # Helpers
 # -------------------------
+
 
 def _compute_portfolio_value(portfolio: Portfolio, db: Session) -> Decimal:
     """Return cash + current market value of all positions."""
@@ -49,9 +62,13 @@ def _compute_portfolio_value(portfolio: Portfolio, db: Session) -> Decimal:
 
     for position, ticker in results:
         try:
-            price = Decimal(str(yf_data.tickers[ticker.symbol].info["regularMarketPrice"]))
+            price = Decimal(
+                str(yf_data.tickers[ticker.symbol].info["regularMarketPrice"])
+            )
         except Exception:
-            price = position.avg_cost_basis  # fallback to cost basis if price unavailable
+            price = (
+                position.avg_cost_basis
+            )  # fallback to cost basis if price unavailable
         total += price * position.quantity
 
     return total
@@ -105,11 +122,11 @@ def _league_info(league: League, db: Session) -> leagueModels.LeagueInfo:
     status_code=201,
     summary="Create a new league",
     description="Creates a league and enters the creator with their chosen portfolio. "
-                "start_date is when the league locks and baselines are recorded.",
+    "start_date is when the league locks and baselines are recorded.",
 )
 def create_league(
     body: leagueModels.LeagueCreate,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     if body.start_date <= date.today():
@@ -123,12 +140,14 @@ def create_league(
         db.query(Portfolio)
         .filter(
             Portfolio.id == body.portfolio_id,
-            Portfolio.user_id == user.id,
+            Portfolio.user_id == current_user.user_id,
         )
         .first()
     )
     if not portfolio:
-        raise HTTPException(status_code=404, detail="Portfolio not found or not owned by user")
+        raise HTTPException(
+            status_code=404, detail="Portfolio not found or not owned by user"
+        )
 
     # Generate a unique invite code
     for _ in range(5):
@@ -136,7 +155,9 @@ def create_league(
         if not db.query(League).filter(League.invite_code == code).first():
             break
     else:
-        raise HTTPException(status_code=500, detail="Could not generate unique invite code")
+        raise HTTPException(
+            status_code=500, detail="Could not generate unique invite code"
+        )
 
     league = League(
         name=body.name,
@@ -145,7 +166,7 @@ def create_league(
         start_date=body.start_date,
         end_date=body.end_date,
         status=LeagueStatus.PENDING,
-        created_by=user.id,
+        created_by=current_user.user_id,
     )
 
     try:
@@ -154,7 +175,7 @@ def create_league(
 
         member = LeagueMember(
             league_id=league.id,
-            user_id=user.id,
+            user_id=current_user.user_id,
             portfolio_id=body.portfolio_id,
         )
         db.add(member)
@@ -176,12 +197,12 @@ def create_league(
     summary="List leagues the current user belongs to",
 )
 def list_my_leagues(
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     memberships = (
         db.query(LeagueMember)
-        .filter(LeagueMember.user_id == user.id)
+        .filter(LeagueMember.user_id == current_user.user_id)
         .all()
     )
 
@@ -240,7 +261,7 @@ def preview_league(
 )
 def get_league(
     league_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     league = db.query(League).filter(League.id == league_id).first()
@@ -264,7 +285,7 @@ def get_league(
 def join_league(
     league_id: int,
     body: leagueModels.JoinLeagueRequest,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     league = db.query(League).filter(League.id == league_id).first()
@@ -284,7 +305,7 @@ def join_league(
         db.query(LeagueMember)
         .filter(
             LeagueMember.league_id == league_id,
-            LeagueMember.user_id == user.id,
+            LeagueMember.user_id == current_user.user_id,
         )
         .first()
     )
@@ -296,17 +317,19 @@ def join_league(
         db.query(Portfolio)
         .filter(
             Portfolio.id == body.portfolio_id,
-            Portfolio.user_id == user.id,
+            Portfolio.user_id == current_user.user_id,
         )
         .first()
     )
     if not portfolio:
-        raise HTTPException(status_code=404, detail="Portfolio not found or not owned by user")
+        raise HTTPException(
+            status_code=404, detail="Portfolio not found or not owned by user"
+        )
 
     try:
         member = LeagueMember(
             league_id=league_id,
-            user_id=user.id,
+            user_id=current_user.user_id,
             portfolio_id=body.portfolio_id,
         )
         db.add(member)
@@ -326,11 +349,11 @@ def join_league(
     response_model=leagueModels.LeaderboardResponse,
     summary="Get ranked leaderboard for a league",
     description="Computes growth % server-side from baseline snapshot and most recent snapshot. "
-                "Members with no baseline yet (league still pending) are excluded.",
+    "Members with no baseline yet (league still pending) are excluded.",
 )
 def get_leaderboard(
     league_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     league = db.query(League).filter(League.id == league_id).first()
@@ -339,9 +362,7 @@ def get_leaderboard(
 
     _refresh_status(league, db)
 
-    members = (
-        db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
-    )
+    members = db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
 
     entries = []
 
@@ -388,7 +409,9 @@ def get_leaderboard(
         sparkline = [s.total_value for s in daily_snapshots]
 
         user = db.query(User).filter(User.id == member.user_id).first()
-        portfolio = db.query(Portfolio).filter(Portfolio.id == member.portfolio_id).first()
+        portfolio = (
+            db.query(Portfolio).filter(Portfolio.id == member.portfolio_id).first()
+        )
 
         entries.append(
             leagueModels.LeaderboardEntry(
@@ -440,32 +463,34 @@ def get_leaderboard(
     status_code=201,
     summary="Trigger a snapshot for all members of a league",
     description="Called by a daily cron job. On the league's start_date it writes a 'baseline' "
-                "snapshot (write-once). Every subsequent call writes a 'daily' snapshot.",
+    "snapshot (write-once). Every subsequent call writes a 'daily' snapshot.",
 )
 def take_snapshots(
     league_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     league = db.query(League).filter(League.id == league_id).first()
     if not league:
         raise HTTPException(status_code=404, detail="League not found")
 
-    if league.created_by != user.id:
-        raise HTTPException(status_code=403, detail="Only the league creator can trigger snapshots")
+    if league.created_by != current_user.user_id:
+        raise HTTPException(
+            status_code=403, detail="Only the league creator can trigger snapshots"
+        )
 
     _refresh_status(league, db)
 
     if league.status == LeagueStatus.PENDING:
         raise HTTPException(status_code=400, detail="League has not started yet")
 
-    members = (
-        db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
-    )
+    members = db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
 
     written = 0
     for member in members:
-        portfolio = db.query(Portfolio).filter(Portfolio.id == member.portfolio_id).first()
+        portfolio = (
+            db.query(Portfolio).filter(Portfolio.id == member.portfolio_id).first()
+        )
         if not portfolio:
             continue
 
@@ -481,7 +506,9 @@ def take_snapshots(
             .first()
         )
 
-        snap_type = SnapshotType.BASELINE if not existing_baseline else SnapshotType.DAILY
+        snap_type = (
+            SnapshotType.BASELINE if not existing_baseline else SnapshotType.DAILY
+        )
 
         snapshot = PortfolioSnapshot(
             league_member_id=member.id,
@@ -506,7 +533,7 @@ def take_snapshots(
 def get_member_snapshots(
     league_id: int,
     member_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     league = db.query(League).filter(League.id == league_id).first()
@@ -558,15 +585,17 @@ def get_member_snapshots(
 )
 def delete_league(
     league_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     league = db.query(League).filter(League.id == league_id).first()
     if not league:
         raise HTTPException(status_code=404, detail="League not found")
 
-    if league.created_by != user.id:
-        raise HTTPException(status_code=403, detail="Only the league creator can delete this league")
+    if league.created_by != current_user.user_id:
+        raise HTTPException(
+            status_code=403, detail="Only the league creator can delete this league"
+        )
 
     db.delete(league)
     db.commit()
