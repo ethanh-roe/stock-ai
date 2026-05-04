@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/protectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { TickerProvider, useTicker } from "./context/TickerContext";
 import StockChatbot from "./components/dashboard/stockChatBot";
+import Settings from "./pages/settings/settings";
 
 const AuthenticatedLayout = () => {
   const { ticker } = useTicker();
@@ -66,6 +67,10 @@ const router = createBrowserRouter([
           {
             path: "about",
             element: <About />,
+          },
+          {
+            path: "settings",
+            element: <Settings />,
           },
         ]
       }

@@ -54,8 +54,8 @@ const UserMenu: React.FC<Props> = ({ user, logout }) => {
 
                 <MenuItem
                     component={RouterLink}
-                    to="/settings"
                     onClick={handleClose}
+                    to="/settings"
                 >
                     Settings
                 </MenuItem>
