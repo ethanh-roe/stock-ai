@@ -53,7 +53,7 @@ class Position_Transfer(BaseModel):
     from_portfolio_id: int
     to_portfolio_id: int
     ticker: str
-    quantity: int
+    quantity: Decimal
 
 
 # -------------------------

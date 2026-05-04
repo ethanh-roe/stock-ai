@@ -5,6 +5,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, APIRouter, status, Query
+from app.security import user_from_jwt
 from app.schema import (
     Portfolio,
     Position,
@@ -19,11 +20,21 @@ from app.schema import (
     Trade,
     TradeType,
 )
-from app.routes.userRoutes import get_current_active_user
 from app.database import get_db
 import yfinance as yf
 from decimal import Decimal
 from datetime import datetime, timedelta
+
+"""
+I want to make note of something in this file:
+    Authentication is using 'user_from_jwt' instead of 'get_current_active_user'.
+    The former just extracts the raw user info (user_id) from the JWT, while the latter
+    actually queries to get the User object.
+    I at one point had redone this to use the latter, but it broke some DB queries, so I have 
+    reverted this file to the version that uses the former.
+    
+    Sorry that it's a bit inconsistent here.
+"""
 
 router = APIRouter(prefix="/portfolios", tags=["portfolios"])
 
@@ -44,10 +55,10 @@ def position_transfer_service(
     # Check that a valid quantity was given
     if quantity <= 0:
         raise HTTPException(status_code=400, detail="Quantity must be positive")
-    
+
     # Start an atomic database transaction
     with db.begin():
-        
+
         # First, validate existence & Onwership of portfolios
         portfolios = (
             db.query(Portfolio)
@@ -76,12 +87,10 @@ def position_transfer_service(
             raise HTTPException(
                 status_code=400, detail="Transfers disabled in active leagues"
             )
-            
+
         # Grab actual ticker from db
-        ticker_obj = (
-            db.query(Ticker).filter(Ticker.symbol == ticker).first()
-        )
-        
+        ticker_obj = db.query(Ticker).filter(Ticker.symbol == ticker).first()
+
         if not ticker_obj:
             raise HTTPException(status_code=404, detail="Specified ticker not found")
 
@@ -108,7 +117,7 @@ def position_transfer_service(
         src_pos.quantity -= quantity
         if src_pos.quantity <= 0:
             db.delete(src_pos)
-        
+
         # Update or create destination position
         if dst_pos:
             new_qty = dst_pos.quantity + quantity
@@ -176,9 +185,15 @@ def position_transfer_service(
 )
 def portfolio_createnew(
     portfolio_in: portfolioModels.PortfolioCreate,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
+    user_id = current_user.user_id
+
+    # Lock users to prevent race conditions
+    user = db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    ).scalar_one()
 
     # Prevent negative initial balances (No infinite money please)
     if portfolio_in.initial_balance < 0:
@@ -198,7 +213,7 @@ def portfolio_createnew(
 
     # Create Portfolio
     new_portfolio = Portfolio(
-        user_id=user.id,
+        user_id=user_id,
         name=portfolio_in.name,
         cash_balance=portfolio_in.initial_balance,
     )
@@ -229,7 +244,7 @@ def portfolio_createnew(
 )
 def portfolio_rename(
     request: portfolioModels.Portfolio_rename,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     # fetch portfolio
@@ -237,7 +252,7 @@ def portfolio_rename(
         db.query(Portfolio)
         .filter(
             Portfolio.id == request.portfolio_id,
-            Portfolio.user_id == user.id,
+            Portfolio.user_id == current_user.user_id,
             Portfolio.deleted_at.is_(None),
         )
         .first()
@@ -275,13 +290,13 @@ def portfolio_rename(
 )
 def portfolio_delete(
     portfolio_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     # First find and grab portfolio
     portfolio = (
         db.query(Portfolio)
-        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == current_user.user_id)
         .first()
     )
     if not portfolio:
@@ -337,9 +352,9 @@ def portfolio_delete(
     description="Requires JWT authorization header. Returns list of portfolios, including their name, id, and creation date.",
 )
 def portfolio_listall(
-    user=Depends(get_current_active_user), db: Session = Depends(get_db)
+    current_user=Depends(user_from_jwt), db: Session = Depends(get_db)
 ):
-    user_id = user.id
+    user_id = current_user.user_id
 
     portfolios = (
         db.query(Portfolio)
@@ -358,7 +373,7 @@ def portfolio_listall(
 )
 def get_positions(
     portfolio_id: int,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     # -------------------------
@@ -366,7 +381,7 @@ def get_positions(
     # -------------------------
     portfolio = (
         db.query(Portfolio)
-        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
+        .filter(Portfolio.id == portfolio_id, Portfolio.user_id == current_user.user_id)
         .first()
     )
 
@@ -443,11 +458,16 @@ def get_positions(
 )
 def portfolio_cash_in(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
-    user_id = user.id
+    user_id = current_user.user_id
     portfolio_id = xfer_info.portfolio_id
+
+    # Grab User
+    user = db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    ).scalar_one()
 
     # Prevent negative xfer amount balances (No infinite money please)
     if xfer_info.xfer_amount < 0:
@@ -509,11 +529,16 @@ def portfolio_cash_in(
 )
 def portfolio_cash_out(
     xfer_info: portfolioModels.Portfolio_Cash_Xfer_Request,
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
-    user_id = user.id
+    user_id = current_user.user_id
     portfolio_id = xfer_info.portfolio_id
+
+    # Grab User
+    user = db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    ).scalar_one()
 
     # Prevent negative xfer amount balances
     if xfer_info.xfer_amount < 0:
@@ -576,11 +601,11 @@ def portfolio_cash_out(
 def position_transfer(
     request: portfolioModels.Position_Transfer,
     db: Session = Depends(get_db),
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
 ):
     return position_transfer_service(
         db,
-        user.id,
+        current_user.user_id,
         request.from_portfolio_id,
         request.to_portfolio_id,
         request.ticker,
@@ -604,37 +629,48 @@ _RANGE_MAP = {
 )
 def get_snapshots(
     portfolio_id: int,
-    range_param: Optional[str] = Query(None, alias="range", description="1W | 1M | 3M | 1Y"),
+    range_param: Optional[str] = Query(
+        None, alias="range", description="1W | 1M | 3M | 1Y"
+    ),
     breakdown: bool = Query(False),
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     portfolio = (
         db.query(Portfolio)
         .filter(
             Portfolio.id == portfolio_id,
-            Portfolio.user_id == user.id,
+            Portfolio.user_id == current_user.user_id,
             Portfolio.deleted_at.is_(None),
         )
         .first()
     )
     if not portfolio:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found or not owned by user.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio not found or not owned by user.",
+        )
 
     if range_param is not None and range_param not in _RANGE_MAP:
-        raise HTTPException(status_code=400, detail="Invalid range. Must be 1W, 1M, 3M, or 1Y.")
+        raise HTTPException(
+            status_code=400, detail="Invalid range. Must be 1W, 1M, 3M, or 1Y."
+        )
 
     # Fetch snapshots for this portfolio in the requested range
-    q = db.query(PortfolioSnapshot).filter(PortfolioSnapshot.portfolio_id == portfolio_id)
+    q = db.query(PortfolioSnapshot).filter(
+        PortfolioSnapshot.portfolio_id == portfolio_id
+    )
     if range_param:
         cutoff = datetime.utcnow() - _RANGE_MAP[range_param]
         q = q.filter(PortfolioSnapshot.recorded_at >= cutoff)
     snapshots = q.order_by(PortfolioSnapshot.recorded_at).all()
 
     # All-time high across all snapshots (independent of range filter)
-    ath = db.query(func.max(PortfolioSnapshot.total_value)).filter(
-        PortfolioSnapshot.portfolio_id == portfolio_id
-    ).scalar()
+    ath = (
+        db.query(func.max(PortfolioSnapshot.total_value))
+        .filter(PortfolioSnapshot.portfolio_id == portfolio_id)
+        .scalar()
+    )
 
     # Current value: latest snapshot total, or cash balance if no snapshots yet
     current_value = snapshots[-1].total_value if snapshots else portfolio.cash_balance
@@ -690,7 +726,9 @@ def get_snapshots(
 
     return portfolioModels.SnapshotResponse(
         snapshots=[
-            portfolioModels.SnapshotPoint(recorded_at=s.recorded_at, total_value=s.total_value)
+            portfolioModels.SnapshotPoint(
+                recorded_at=s.recorded_at, total_value=s.total_value
+            )
             for s in snapshots
         ],
         breakdown=breakdown_map,
@@ -707,20 +745,23 @@ def get_snapshots(
 def get_activity(
     portfolio_id: int,
     limit: int = Query(10, ge=1, le=100),
-    user=Depends(get_current_active_user),
+    current_user=Depends(user_from_jwt),
     db: Session = Depends(get_db),
 ):
     portfolio = (
         db.query(Portfolio)
         .filter(
             Portfolio.id == portfolio_id,
-            Portfolio.user_id == user.id,
+            Portfolio.user_id == current_user.user_id,
             Portfolio.deleted_at.is_(None),
         )
         .first()
     )
     if not portfolio:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found or not owned by user.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio not found or not owned by user.",
+        )
 
     results = (
         db.query(Trade, Ticker)
