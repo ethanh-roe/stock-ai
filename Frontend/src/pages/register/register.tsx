@@ -21,7 +21,6 @@ const Register = () => {
     initial_balance: 10000,
   });
 
-  // const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

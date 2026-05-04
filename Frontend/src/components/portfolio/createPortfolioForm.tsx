@@ -37,26 +37,26 @@ const CreatePortfolioForm: React.FC<Props> = ({
   const closeCreateDialog = () => setIsDialogOpen(false);
 
   const submit = async () => {
-  if (!name) return setError("Portfolio name cannot be empty");
+    if (!name) return setError("Portfolio name cannot be empty");
 
-  setError(null);
+    setError(null);
 
-  try {
-    await onCreate(name, initial);  // <-- now this will throw
-    setName("");
-    setInitialAmount(0);
-    setIsDialogOpen(false);
-  } catch (err: any) {
-    console.log("Form caught:", err?.response?.data);
+    try {
+      await onCreate(name, initial);
+      setName("");
+      setInitialAmount(0);
+      setIsDialogOpen(false);
+    } catch (err: any) {
+      console.log("Form caught:", err?.response?.data);
 
-    const msg =
-      err?.response?.data?.detail ||
-      err?.response?.data?.message ||
-      "Failed to create portfolio";
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        "Failed to create portfolio";
 
-    setError(msg);
-  }
-};
+      setError(msg);
+    }
+  };
 
 
   return (
@@ -101,7 +101,7 @@ const CreatePortfolioForm: React.FC<Props> = ({
           </Stack>
 
           {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-          
+
           <Box
             sx={{
               display: "flex",

@@ -41,7 +41,6 @@ const Portfolio: React.FC = () => {
       setUser({ ...user, cash_balance: user.cash_balance - initial });
     }
   } catch (err) {
-    // THIS MUST BE HERE
     throw err;
   }
 };
@@ -56,7 +55,6 @@ const Portfolio: React.FC = () => {
   const loadPositions = async (id: number) => {
     const data = await PortfolioService.getPositions(id);
     setPositions(prev => ({ ...prev, [id]: data }));
-    console.log(user?.cash_balance);
   };
 
   return (

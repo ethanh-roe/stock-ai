@@ -18,14 +18,6 @@ const btnBase: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const extractError = (err: any, fallback: string): string => {
-  const d = err?.response?.data?.detail;
-  if (!d) return fallback;
-  if (Array.isArray(d)) return d.map((e: any) => e?.msg ?? "Validation error").join(", ");
-  if (typeof d === "string") return d;
-  return fallback;
-};
-
 interface Props {
   portfolio: PortfolioInfo;
   portfolios: PortfolioInfo[];
@@ -50,12 +42,13 @@ const TransferControls: React.FC<Props> = ({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"deposit" | "withdraw">("deposit");
   const [amount, setAmount] = useState("");
-  const [dialogError, setDialogError] = useState<string | null>(null);
+  // const [dialogError, setDialogError] = useState<string | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferTicker, setTransferTicker] = useState<string | null>(null);
   const [transferToId, setTransferToId] = useState<number | "">("");
   const [transferQty, setTransferQty] = useState("");
-  const [transferError, setTransferError] = useState<string | null>(null);
+  const [transferAssetError, setTransferAssetError] = useState<string | null>(null);
+  const [transferFundsError, setTransferFundsError] = useState<string | null>(null);
   const [transferLoading, setTransferLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -63,17 +56,17 @@ const TransferControls: React.FC<Props> = ({
   const tickerOptions = positions.map(p => p.ticker);
   const destPortfolios = portfolios.filter((p) => p.id !== portfolio.id);
 
-  const handleOpen = (m: "deposit" | "withdraw") => {
+  const handleFundsTransfer = (m: "deposit" | "withdraw") => {
     setMode(m);
     setAmount("");
-    setDialogError(null);
+    setTransferFundsError(null);
     setOpen(true);
   };
 
-  const handleSubmit = async () => {
+  const handleMoneyTransferSubmit = async () => {
     const value = Number(amount);
     if (isNaN(value) || value <= 0) {
-      setDialogError("Enter a valid amount");
+      setTransferFundsError("Enter a valid amount");
       return;
     }
     const xfer: CashTransferRequest = { portfolio_id: portfolio.id, xfer_amount: value };
@@ -90,28 +83,32 @@ const TransferControls: React.FC<Props> = ({
             : user.cash_balance + value,
         });
       }
-      setDialogError(null);
+      setTransferFundsError(null);
       setOpen(false);
-    } catch (err) {
-      setDialogError(extractError(err, "Transfer failed"));
-      setError(extractError(err, "Error"));
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        "Failed to transfer funds";
+      setTransferFundsError(msg);
+      setError(msg);
     }
   };
 
-  const openTransfer = () => {
+  const handleAssetTransfer = () => {
     setTransferTicker(null);
     setTransferToId("");
     setTransferQty("");
-    setTransferError(null);
+    setTransferAssetError(null);
     setTransferOpen(true);
   };
 
-  const handleTransferSubmit = async () => {
-    if (!transferTicker) { setTransferError("Select an asset"); return; }
-    if (!transferToId) { setTransferError("Select a destination portfolio"); return; }
+  const handleAssetTransferSubmit = async () => {
+    if (!transferTicker) { setTransferAssetError("Select an asset"); return; }
+    if (!transferToId) { setTransferAssetError("Select a destination portfolio"); return; }
     const qty = Number(transferQty);
-    if (isNaN(qty) || qty <= 0 || !Number.isInteger(qty)) {
-      setTransferError("Enter a valid whole number quantity");
+    if (isNaN(qty) || qty <= 0) {
+      setTransferAssetError("Value must be positive.");
       return;
     }
     setTransferLoading(true);
@@ -124,8 +121,15 @@ const TransferControls: React.FC<Props> = ({
       });
       onTransferSuccess?.();
       setTransferOpen(false);
-    } catch (err) {
-      setTransferError(extractError(err, "Transfer failed"));
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        "Failed to transfer assets";
+
+      console.log(msg);
+      setTransferAssetError(msg);
+      setError(msg);
     } finally {
       setTransferLoading(false);
     }
@@ -133,22 +137,22 @@ const TransferControls: React.FC<Props> = ({
 
   return (
     <>
-      <Button variant="contained" style={btnBase} onClick={() => handleOpen("deposit")}>Deposit</Button>
-      <Button variant="outlined" style={btnBase} onClick={() => handleOpen("withdraw")}>Withdraw</Button>
+      <Button variant="contained" style={btnBase} onClick={() => handleFundsTransfer("deposit")}>Deposit</Button>
+      <Button variant="outlined" style={btnBase} onClick={() => handleFundsTransfer("withdraw")}>Withdraw</Button>
       <Button variant="outlined" style={btnBase} onClick={() => navigate("/")}>Trade</Button>
-      <Button variant="outlined" style={btnBase} onClick={openTransfer}>Transfer</Button>
+      <Button variant="outlined" style={btnBase} onClick={handleAssetTransfer}>Transfer</Button>
 
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>{mode === "deposit" ? "Deposit Funds" : "Withdraw Funds"}</DialogTitle>
         <DialogContent>
-          {dialogError && <Alert severity="error" sx={{ mb: 2 }}>{dialogError}</Alert>}
+          {transferFundsError && <Alert severity="error" sx={{ mb: 2 }}>{transferFundsError}</Alert>}
           <TextField
             autoFocus margin="dense" label="Amount" type="number"
             fullWidth value={amount} onChange={(e) => setAmount(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" style={btnBase} onClick={handleSubmit}>Confirm</Button>
+          <Button variant="contained" style={btnBase} onClick={handleMoneyTransferSubmit}>Confirm</Button>
           <Button style={btnBase} onClick={() => setOpen(false)}>Cancel</Button>
         </DialogActions>
       </Dialog>
@@ -156,7 +160,7 @@ const TransferControls: React.FC<Props> = ({
       <Dialog open={transferOpen} onClose={() => setTransferOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle>Transfer Asset</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
-          {transferError && <Alert severity="error">{transferError}</Alert>}
+          {transferAssetError && <Alert severity="error">{transferAssetError}</Alert>}
 
           <Autocomplete
             options={tickerOptions}
@@ -175,8 +179,8 @@ const TransferControls: React.FC<Props> = ({
               {destPortfolios.length === 0
                 ? <MenuItem disabled>No other portfolios</MenuItem>
                 : destPortfolios.map((p) => (
-                    <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
-                  ))
+                  <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                ))
               }
             </Select>
           </FormControl>
@@ -190,7 +194,7 @@ const TransferControls: React.FC<Props> = ({
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" style={btnBase} onClick={handleTransferSubmit} disabled={transferLoading}>
+          <Button variant="contained" style={btnBase} onClick={handleAssetTransferSubmit} disabled={transferLoading}>
             {transferLoading ? "Transferring..." : "Confirm"}
           </Button>
           <Button style={btnBase} onClick={() => setTransferOpen(false)}>Cancel</Button>
